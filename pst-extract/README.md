@@ -4,8 +4,8 @@
 
 ### folders
 
-pst-extract/pst
-pst-extract/mbox
-pst-extract/pst-json
-pst-extract/spark-attach
-pst-extract/spark-emails-content
+pst-extract/pst <br />
+pst-extract/mbox <br />
+pst-extract/pst-json <br />
+pst-extract/spark-attach <br />
+pst-extract/spark-emails-content <br />
