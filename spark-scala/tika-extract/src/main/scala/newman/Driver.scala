@@ -7,7 +7,9 @@ import org.apache.spark.SparkConf
 import java.io.{InputStream, ByteArrayInputStream}
 import java.nio.file.{Files, Paths}
 
-import java.util.Base64
+//java 8
+//import java.util.Base64
+import org.apache.commons.codec.binary.Base64;
 
 //Tika
 import org.apache.tika.Tika
@@ -39,7 +41,7 @@ object Driver {
   def extractInfo(base64Str:String): (String, Boolean) = {
     val p:Parser = new AutoDetectParser()
     val handler:BodyContentHandler = new BodyContentHandler(-1)
-    val byte_buff = Base64.getDecoder().decode(base64Str)
+    val byte_buff = Base64.decodeBase64(base64Str)
     val is:InputStream =  new ByteArrayInputStream(byte_buff)
     var t:Throwable = null
     try{
