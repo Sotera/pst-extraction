@@ -27,6 +27,9 @@ def extractAttachments(x):
     attachments = [dict(a, **{'id': message_id }) for a in attachments]
     return attachments
 
+def dump(x):
+    return json.dumps(x)
+
 if __name__ == "__main__":
 
     desc='newman split emails and attachment for indexing '
@@ -45,6 +48,6 @@ if __name__ == "__main__":
     sc = SparkContext(conf=conf)
 
     rdd_emails = sc.textFile(args.input_emails_content_path).map(lambda x: json.loads(x))
-    rdd_emails.map(removeAttachments).saveAsTextFile(args.output_path_emails)
-    rdd_emails.flatMap(extractAttachments).saveAsTextFile(args.output_path_raw_attachments)    
+    rdd_emails.map(removeAttachments).map(dump).saveAsTextFile(args.output_path_emails)
+    rdd_emails.flatMap(extractAttachments).map(dump).saveAsTextFile(args.output_path_raw_attachments)    
 
