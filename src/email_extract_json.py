@@ -121,7 +121,7 @@ def createRow(email_id, mail, attach, msg_body, categories):
                          EXPR_OPTS['fix_cr']])
     
     doc = { "id": email_id,
-            "datetime": dateToUTCstr(head(mail_date)) if mail_date else 'NODATE',
+            "datetime": dateToUTCstr(head(mail_date)) if mail_date else '',
             "originating_ips" : originating_ips,
             "categories" : categories,
             "senders": senders,
