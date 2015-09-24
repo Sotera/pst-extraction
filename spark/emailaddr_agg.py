@@ -53,7 +53,9 @@ def email_to_addrs(o):
     tos = j.get('tos', [])
     ccs = j.get('ccs', [])
     bccs = j.get('bccs', [])
-    dt = j.get('datetime')
+    #if datetime is emtpy string convert it to None
+    dt = j.get('datetime', None)
+    dt = dt if dt else None 
     recepients = [{'addr': addr, 'datetime': dt, 'type': 'recepient', 'email_id': email_id } for addr in filter(identity, list(set(tos + ccs + bccs)))]
     return ([{'addr' : sender, 'datetime': dt, 'type': 'sender', 'email_id': email_id}] if sender else []) + recepients
 
