@@ -5,7 +5,7 @@ import sys, os
 import json
 import argparse
 import igraph
-from operator import attrgetter 
+from operator import itemgetter 
 
 #utils
 def split_on_condition(seq, condition):
@@ -84,7 +84,6 @@ if __name__ == "__main__":
         epilog=desc)
     parser.add_argument("input_path_emails", help="directory with json emails")
     parser.add_argument("output_path_email_address", help="output directory for spark results of json email address ")
-    
     args = parser.parse_args()
 
     conf = SparkConf().setAppName("Newman email address aggregations")
@@ -137,8 +136,8 @@ if __name__ == "__main__":
     rdd_communities_assigned = rdd_addr_to_emails.keyBy(lambda x: x['addr']) \
                                                  .join(rdd_communities) \
                                                  .map(lambda x: dict(x[1][0], **x[1][1])) \
-                                                 .map(add_meta)
+                                                 .map(add_meta).cache()
     
     rdd_communities_assigned.map(dump).saveAsTextFile(args.output_path_email_address)
 
-    print "fin."
+    print "complete."
