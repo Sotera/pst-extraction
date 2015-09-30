@@ -1,0 +1,83 @@
+{
+      "emails" : {
+        "properties" : {
+          "attachments" : {
+            "properties" : {
+              "content" : {
+                "type" : "string"
+              },
+              "content_extracted" : {
+                "type" : "boolean"
+              },
+              "extension" : {
+                "type" : "string"
+              },
+              "filename" : {
+                "type" : "string"
+              },
+              "guid" : {
+                "type" : "string"
+              }
+            }
+          },
+          "bccs" : {
+            "type" : "string"
+          },
+          "bccs_line" : {
+            "type" : "string"
+          },
+          "body" : {
+            "type" : "string"
+          },
+          "categories" : {
+            "type" : "string"
+          },
+          "ccs" : {
+            "type" : "string"
+          },
+          "ccs_line" : {
+            "type" : "string"
+          },
+          "datetime" : {
+            "type" : "date",
+            "format" : "dateOptionalTime"
+          },
+          "forensic-bcc" : {
+            "type" : "string"
+          },
+          "id" : {
+            "type" : "string",
+            "index" : "not_analyzed"
+          },
+          "inreplyto" : {
+            "type" : "string"
+          },
+          "messageid" : {
+            "type" : "string"
+          },
+          "originating_ips" : {
+            "type" : "string"
+          },
+          "references" : {
+            "type" : "string"
+          },
+          "senders" : {
+            "type" : "string"
+          },
+          "senders_line" : {
+            "type" : "string"
+          },
+          "subject" : {
+            "type" : "string"
+          },
+          "tos" : {
+            "type" : "string"
+          },
+          "tos_line" : {
+            "type" : "string"
+          }
+        }
+      }
+}
+    }
+  },

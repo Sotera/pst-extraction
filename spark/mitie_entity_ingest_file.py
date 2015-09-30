@@ -8,10 +8,6 @@ from functools import partial
 from pyspark import SparkContext, SparkConf
 
 
-#def spit(filePath, data, overwrite=False):
-#    mode= 'w' if overwrite else 'a'
-#    with open(filePath, mode) as x: x.write(data)
-
 def extract_entities(doc_iter):
     sys.path.append(".")
     from mitie import tokenize_with_offsets, named_entity_extractor
@@ -33,28 +29,27 @@ def extract_entities(doc_iter):
             (tag, " ".join([tokens[i][0] for i in rng]), ",".join([str(tokens[i][1]) for i in rng]), score)
             for rng, tag, score in entities_markup ]
         
-        #only want to return the entity name
-        entities = [(b)for a,b,c,d in results]
-        
-        doc["entities"] = {}
-        doc["entities"]["entity_content"] = results
-        doc["entities"]["entity_all"] = entities
-        doc["entities"]["entity_location"] = []
-        doc["entities"]["entity_organization"] = []
-        doc["entities"]["entity_person"] = []
-        doc["entities"]["entity_misc"] = []
+        entity_doc = {"id" : doc_id}
+        entity_doc["entity_content"] = results
+        entity_doc["entity_all"] = []
+        entity_doc["entity_location"] = []
+        entity_doc["entity_organization"] = []
+        entity_doc["entity_person"] = []
+        entity_doc["entity_misc"] = []
         
         for tag, entity, rng, score in results:
             if tag == 'LOCATION' and score > 0.3:
-                doc["entities"]["entity_location"].append(entity)
+                entity_doc["entity_location"].append(entity)
             elif tag == 'ORGANIZATION' and score > 0.5:
-                doc["entities"]["entity_organization"].append(entity)
+                entity_doc["entity_organization"].append(entity)
             elif tag == 'PERSON' and score > 0.3:
-                doc["entities"]["entity_person"].append(entity)
+                entity_doc["entity_person"].append(entity)
             elif score > 0.5:
-                doc["entities"]["entity_misc"].append(entity)
- 
-        yield doc
+                entity_doc["entity_misc"].append(entity)
+            else:
+                entity_doc["entity_all"].append(entity)
+     
+        yield entity_doc
 
 def dump(x):
     return json.dumps(x)
