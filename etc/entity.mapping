@@ -6,6 +6,7 @@
           },
           "entity_content" : {
             "type" : "string"
+            "index" : "no"
           },
           "entity_location" : {
             "type" : "string"

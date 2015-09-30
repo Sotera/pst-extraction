@@ -38,6 +38,8 @@ def extract_entities(doc_iter):
         entity_doc["entity_misc"] = []
         
         for tag, entity, rng, score in results:
+            entity_doc["entity_all"].append(entity)
+            
             if tag == 'LOCATION' and score > 0.3:
                 entity_doc["entity_location"].append(entity)
             elif tag == 'ORGANIZATION' and score > 0.5:
@@ -46,8 +48,6 @@ def extract_entities(doc_iter):
                 entity_doc["entity_person"].append(entity)
             elif score > 0.5:
                 entity_doc["entity_misc"].append(entity)
-            else:
-                entity_doc["entity_all"].append(entity)
      
         yield entity_doc
 
