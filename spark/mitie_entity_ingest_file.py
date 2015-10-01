@@ -29,7 +29,11 @@ def extract_entities(doc_iter):
             (tag, " ".join([tokens[i][0] for i in rng]), ",".join([str(tokens[i][1]) for i in rng]), score)
             for rng, tag, score in entities_markup ]
         
+<<<<<<< HEAD
+        entity_doc = {}
+=======
         entity_doc = {"id" : doc_id}
+>>>>>>> ed67238cf2e414cfeaa33d9ee2e0c67e2c908352
         entity_doc["entity_content"] = results
         entity_doc["entity_all"] = []
         entity_doc["entity_location"] = []
@@ -49,7 +53,12 @@ def extract_entities(doc_iter):
             elif score > 0.5:
                 entity_doc["entity_misc"].append(entity)
      
+<<<<<<< HEAD
+        doc["entities"] = entity_doc
+        yield doc
+=======
         yield entity_doc
+>>>>>>> ed67238cf2e414cfeaa33d9ee2e0c67e2c908352
 
 def dump(x):
     return json.dumps(x)

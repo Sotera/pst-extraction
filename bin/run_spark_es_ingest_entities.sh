@@ -4,7 +4,11 @@ set +x
 set -e
 
 INDEX=sample
+<<<<<<< HEAD
+DOC_TYPE=emails
+=======
 DOC_TYPE=entity
+>>>>>>> ed67238cf2e414cfeaa33d9ee2e0c67e2c908352
 
 response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "localhost:9200/${INDEX}")
 
@@ -20,7 +24,11 @@ if [[ "$response" -eq 200 ]]; then
 fi
 
 printf "create doc_type\n"
+<<<<<<< HEAD
+curl -s -XPUT "http://localhost:9200/${INDEX}/${DOC_TYPE}/_mapping" --data-binary "@etc/emails.mapping"
+=======
 curl -s -XPUT "http://localhost:9200/${INDEX}/${DOC_TYPE}/_mapping" --data-binary "@etc/entity.mapping"
+>>>>>>> ed67238cf2e414cfeaa33d9ee2e0c67e2c908352
 
 
 printf "ingest entity documents\n"

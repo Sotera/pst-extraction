@@ -1,5 +1,11 @@
 {
       "emails" : {
+<<<<<<< HEAD
+        "_id": {
+          "path": "id" 
+        },
+=======
+>>>>>>> ed67238cf2e414cfeaa33d9ee2e0c67e2c908352
         "properties" : {
           "attachments" : {
             "properties" : {
@@ -13,10 +19,19 @@
                 "type" : "string"
               },
               "filename" : {
+<<<<<<< HEAD
+                "type" : "string",
+                "index" : "not_analyzed"
+              },
+              "guid" : {
+                "type" : "string",
+                "index" : "not_analyzed"
+=======
                 "type" : "string"
               },
               "guid" : {
                 "type" : "string"
+>>>>>>> ed67238cf2e414cfeaa33d9ee2e0c67e2c908352
               }
             }
           },
@@ -42,12 +57,42 @@
             "type" : "date",
             "format" : "dateOptionalTime"
           },
+<<<<<<< HEAD
+          "entities" : {
+            "properties" : {
+              "entity_all" : {
+                "type" : "string"
+              },
+              "entity_content" : {
+                "type" : "string",
+                "indexed" : "no"
+              },
+              "entity_location" : {
+                "type" : "string"
+              },
+              "entity_misc" : {
+                "type" : "string"
+              },
+              "entity_organization" : {
+                "type" : "string"
+              },
+              "entity_person" : {
+                "type" : "string"
+              }
+            }
+          },
+=======
+>>>>>>> ed67238cf2e414cfeaa33d9ee2e0c67e2c908352
           "forensic-bcc" : {
             "type" : "string"
           },
           "id" : {
+<<<<<<< HEAD
+            "type" : "string"
+=======
             "type" : "string",
             "index" : "not_analyzed"
+>>>>>>> ed67238cf2e414cfeaa33d9ee2e0c67e2c908352
           },
           "inreplyto" : {
             "type" : "string"
@@ -79,5 +124,8 @@
         }
       }
 }
+<<<<<<< HEAD
+=======
     }
   },
+>>>>>>> ed67238cf2e414cfeaa33d9ee2e0c67e2c908352
