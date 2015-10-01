@@ -4,11 +4,7 @@ set +x
 set -e
 
 INDEX=sample
-<<<<<<< HEAD
 DOC_TYPE=emails
-=======
-DOC_TYPE=entity
->>>>>>> ed67238cf2e414cfeaa33d9ee2e0c67e2c908352
 
 response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "localhost:9200/${INDEX}")
 
