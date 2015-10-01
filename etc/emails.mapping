@@ -1,5 +1,6 @@
 {
-      "emails" : {
+
+  "emails" : {
         "_id" : {
           "path" : "id"
         },
@@ -42,6 +43,19 @@
           },
           "ccs_line" : {
             "type" : "string"
+          },
+          "communities" : {
+            "properties" : {
+              "community" : {
+                "type" : "string"
+              },
+              "community_id" : {
+                "type" : "long"
+              }
+            }
+          },
+          "communities_count" : {
+            "type" : "long"
           },
           "datetime" : {
             "type" : "date",
@@ -96,6 +110,16 @@
           "subject" : {
             "type" : "string"
           },
+          "topic_scores" : {
+            "properties" : {
+              "idx" : {
+                "type" : "long"
+              },
+              "score" : {
+                "type" : "float"
+              }
+            }
+          },
           "tos" : {
             "type" : "string"
           },
@@ -104,4 +128,7 @@
           }
         }
       }
+
+
+
 }

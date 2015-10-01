@@ -19,10 +19,9 @@ if [[ "$response" -eq 200 ]]; then
     curl -XDELETE "localhost:9200/${INDEX}/${DOC_TYPE}"
 fi
 
-printf "create doc_type emails\n"
+printf "create doc_type\n"
 curl -s -XPUT "http://localhost:9200/${INDEX}/${DOC_TYPE}/_mapping" --data-binary "@etc/emails.mapping"
 
+printf "ingest entity documents\n"
 
-printf "ingest type=emails documents\n"
-
-spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.1.1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-text/part-*" "${INDEX}/${DOC_TYPE}"
+spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.1.1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-entity/part-*" "${INDEX}/${DOC_TYPE}"

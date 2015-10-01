@@ -14,7 +14,6 @@ def extract_entities(doc_iter):
     print "loading NER model..."
     ner = named_entity_extractor('ner_model.dat')
 
-    print "\nTags output by this NER model:", ner.get_possible_ner_tags()
     for doc in doc_iter:
         doc_id = doc["id"]
         body = doc["body"]
