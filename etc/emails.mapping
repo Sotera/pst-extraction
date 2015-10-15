@@ -27,7 +27,8 @@
             }
           },
           "bccs" : {
-            "type" : "string"
+            "type" : "string",
+            "index" : "not_analyzed"
           },
           "bccs_line" : {
             "type" : "string"
@@ -39,7 +40,8 @@
             "type" : "string"
           },
           "ccs" : {
-            "type" : "string"
+            "type" : "string",
+            "index" : "not_analyzed"
           },
           "ccs_line" : {
             "type" : "string"
@@ -102,7 +104,8 @@
             "type" : "string"
           },
           "senders" : {
-            "type" : "string"
+            "type" : "string",
+            "index" : "not_analyzed"
           },
           "senders_line" : {
             "type" : "string"
@@ -121,7 +124,8 @@
             }
           },
           "tos" : {
-            "type" : "string"
+            "type" : "string",
+            "index" : "not_analyzed"
           },
           "tos_line" : {
             "type" : "string"
