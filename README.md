@@ -15,3 +15,13 @@ place pst files in `pst-extract/pst/`
 1. `bin/run_spark_es_ingest_attachments.sh` - ingest attachments to ES index 
 1. `bin/run_spark_es_ingest_emails.sh` - ingest emails with entities to ES index 
 
+
+### extras 
+
+** location extraction **
+
+1. `bin/build_clavin_index.sh` setup location index (only needs to be
+run once)
+2. `bin/run_location_extract.sh` extracts locations from text body
+uses input from `bin/run_spark_content_split` task
+
