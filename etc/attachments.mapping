@@ -1,5 +1,9 @@
 {
   "attachments": {
+
+    "_id" : {
+          "path" : "guid"
+    },
     "properties": {
       "contents64": {
         "type": "string",

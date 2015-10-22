@@ -66,22 +66,28 @@
           "entities" : {
             "properties" : {
               "entity_all" : {
-                "type" : "string"
+                "type" : "string",
+                "index" : "not_analyzed"
               },
               "entity_content" : {
-                "type" : "string"
+                "type" : "string",
+                "index" : "not_analyzed"
               },
               "entity_location" : {
-                "type" : "string"
+                "type" : "string",
+                "index" : "not_analyzed"
               },
               "entity_misc" : {
-                "type" : "string"
+                "type" : "string",
+                "index" : "not_analyzed"
               },
               "entity_organization" : {
-                "type" : "string"
+                "type" : "string",
+                "index" : "not_analyzed"
               },
               "entity_person" : {
-                "type" : "string"
+                "type" : "string",
+                "index" : "not_analyzed"
               }
             }
           },
