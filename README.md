@@ -25,3 +25,6 @@ run once)
 2. `bin/run_location_extract.sh` extracts locations from text body
 uses input from `bin/run_spark_content_split` task
 
+
+
+![Workflow](etc/workflow.png?raw=true "extraction workflow")
