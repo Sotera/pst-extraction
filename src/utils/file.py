@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import shutil
+from functions import counter
 
 def slurp(filePath):
     with open(filePath) as x: data = x.read()
@@ -39,3 +40,38 @@ def mkdir(path):
 def mkdirp(path):
     if not os.path.exists(path):
         mkdir(path)
+
+
+class RollingFile(object):
+
+    def __init__(self, directory, filename, limit_megabytes=10):
+        self.directory = directory
+        self.filename = filename
+        self.limit_bytes = limit_megabytes*1024*1024
+        self.gen = counter()
+        self.rotate = False
+
+    def open(self):
+        sz = "{}/{}-{:06d}".format(self.directory, self.filename, self.gen.next())
+        self.f = open(sz, 'a+b')
+
+    def rotate():
+        self.rotate = True
+
+    def __enter__(self):
+        self.open()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self.close()
+
+    def close(self):
+        self.f.close()
+        
+    def write(self,data):
+        if self.rotate or (self.f.tell() > self.limit_bytes):
+            self.rotate = False
+            self.close()
+            self.open()
+        self.f.write(data)
+

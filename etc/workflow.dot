@@ -1,7 +1,8 @@
 digraph G {
-   pst [label="explode pst"] ;
+   pst [label="pst"] ;
    mbox [label="explode mbox"] ;
-   eml [label="TODO: explode .eml"] ;
+   eml [label="explode .eml"] ;
+   msg [label="TODO: explode .msg"] ;   
    other [label="TODO: unknown format"] ; 
    tika [label="tika extraction"] ;
    tika_merge [label="tika merge content"] ;
@@ -21,7 +22,9 @@ digraph G {
    
    pst -> mbox ;
    pst -> eml ;
+   pst -> msg ;
    eml -> tika ;
+   msg -> tika ;
    mbox -> tika ;
    other -> tika ;
    tika -> tika_merge ;

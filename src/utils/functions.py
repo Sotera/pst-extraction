@@ -59,7 +59,6 @@ def counter(start=0):
         yield n
         n = inc(n)
 
-
 def jsonGet(arraypath, j, default=None):
     if not j:
         return j 
