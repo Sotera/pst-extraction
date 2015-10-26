@@ -32,10 +32,9 @@
 
 ;;extract data from GeoName object
 (defn info [geoName]
-  (let [keys [:latlon :name :preferredName]
-        latlon (juxt #(. % getLatitude)
-                     #(. % getLongitude))
-        funs (juxt latlon
+  (let [keys [:location :name :preferredName]       
+        funs (juxt (fn [o] {:lat (.getLatitude o)
+                           :lon (.getLongitude o)}) 
                    #(. % getName)
                    #(. % getPreferredName))]
     (zipmap keys (funs geoName))))
