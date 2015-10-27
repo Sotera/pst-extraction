@@ -5,6 +5,7 @@ import sys, os
 import json
 import argparse
 import igraph
+from functools import partial
 from operator import itemgetter 
 
 #utils
@@ -49,22 +50,27 @@ def identity(x):
 def email_to_addrs(o):
     j = json.loads(o)
     email_id = j.get('id')
+    removeContent = partial(rmkey, 'content')
+    attachments = [dict(attach, email_id=email_id) for attach in map(removeContent, j.get('attachments', []))]
     sender = one(j.get('senders', []))
     tos = j.get('tos', [])
     ccs = j.get('ccs', [])
     bccs = j.get('bccs', [])
-    #if datetime is emtpy string convert it to None
+    #if datetime is empty string convert it to None
     dt = j.get('datetime', None)
     dt = dt if dt else None 
-    recepients = [{'addr': addr, 'datetime': dt, 'type': 'recepient', 'email_id': email_id } for addr in filter(identity, list(set(tos + ccs + bccs)))]
-    return ([{'addr' : sender, 'datetime': dt, 'type': 'sender', 'email_id': email_id}] if sender else []) + recepients
+    # attachments get add to the sender only and empty list for recepients
+    recepients = [{'addr': addr, 'datetime': dt, 'type': 'recepient', 'email_id': email_id, 'attachments': [] } for addr in filter(identity, list(set(tos + ccs + bccs)))]
+    return ([{'addr' : sender, 'datetime': dt, 'type': 'sender', 'email_id': email_id, 'attachments' : attachments}] if sender else []) + recepients
 
 def in_out(t):
     addr, arr = t
     sender_emails, recepient_emails = split_on_condition(arr, lambda x: x['type'] == 'sender')
+    attachments = reduce(lambda a,b: a+b.get('attachments',[]), sender_emails, [])
     return {'addr' : addr,
-            'sender' : map(lambda x: rmkeys(['addr', 'type'], x), sender_emails), 
-            'recepient': map(lambda x: rmkeys(['addr', 'type'], x), recepient_emails)}
+            'attachments' : attachments,
+            'sender' : map(lambda x: rmkeys(['addr', 'type', 'attachments'], x), sender_emails), 
+            'recepient': map(lambda x: rmkeys(['addr', 'type', 'attachments'], x), recepient_emails)}
 
 def sender_receiver(o):
     j = json.loads(o)
@@ -127,6 +133,7 @@ if __name__ == "__main__":
                     
         o['sent_count'] = len(o.get('sender', []))
         o['received_count'] = len(o.get('recepient', []))
+        o['attachments_count'] = len(o.get('attachments', []))
         o['first_sent'] = apply_filter_map(o.get('sender', []), min, identity, lambda x: x.get('datetime', None))
         o['first_received'] = apply_filter_map(o.get('recepient', []), min, identity, lambda x: x.get('datetime', None))
         o['last_received'] =  apply_filter_map(o.get('recepient', []), max, identity, lambda x: x.get('datetime', None))
