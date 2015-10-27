@@ -8,8 +8,8 @@ from operator import itemgetter
 
 def parseLDA(line):
     uid, scores = line.strip().split("\t")
-    topic_scores = [{'idx': topic_idx, 'score': score}
-              for topic_idx, score in enumerate(scores.split())]
+    topic_scores = {"idx_{}".format(topic_idx):score
+                    for topic_idx, score in enumerate(scores.split())}
     return (uid, topic_scores)
 
 def addTopicScores(t):
