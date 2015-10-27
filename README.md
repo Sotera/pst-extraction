@@ -1,4 +1,4 @@
-### pst-extraction
+### PST Extraction
 
 place pst files in `pst-extract/pst/`
 
@@ -16,9 +16,9 @@ place pst files in `pst-extract/pst/`
 1. `bin/run_spark_es_ingest_emails.sh` - ingest emails with entities to ES index 
 
 
-### extras 
+### Extras 
 
-** location extraction **
+** Location Extraction **
 
 1. `bin/build_clavin_index.sh` setup location index (only needs to be
 run once)
@@ -26,5 +26,7 @@ run once)
 uses input from `bin/run_spark_content_split` task
 
 
+<br /><br />
 
 ![Workflow](etc/workflow.png?raw=true "extraction workflow")
+
