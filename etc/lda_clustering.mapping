@@ -1,0 +1,27 @@
+
+{
+"lda-clustering": {
+    "_id" : {
+          "path" : "idx"
+        },
+    "properties": {
+        "topic": {
+            "properties": {
+                "score": {
+                    "type": "double"
+                },
+                "term": {
+                    "type": "string"
+                },
+                "idx": {
+                    "type": "long"
+                }
+            }
+        },
+        "idx": {
+            "type": "long"
+        }
+    }
+
+}
+}

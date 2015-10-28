@@ -119,16 +119,6 @@
           "subject" : {
             "type" : "string"
           },
-          "topic_scores" : {
-            "properties" : {
-              "idx" : {
-                "type" : "long"
-              },
-              "score" : {
-                "type" : "float"
-              }
-            }
-          },
           "tos" : {
             "type" : "string",
             "index" : "not_analyzed"

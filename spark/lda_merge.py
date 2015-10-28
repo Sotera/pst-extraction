@@ -8,7 +8,7 @@ from operator import itemgetter
 
 def parseLDA(line):
     uid, scores = line.strip().split("\t")
-    topic_scores = {"idx_{}".format(topic_idx):score
+    topic_scores = {"idx_{}".format(topic_idx):float(score)
                     for topic_idx, score in enumerate(scores.split())}
     return (uid, topic_scores)
 
