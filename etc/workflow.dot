@@ -19,6 +19,7 @@ digraph G {
    es_attach [label="attachment index"];
 
    email_location [label="email id with extracted geo locations"];
+   email_origin_loc [label="email origin location"];
    
    pst -> mbox ;
    pst -> eml ;
@@ -42,6 +43,7 @@ digraph G {
    emailaddr_comm -> es_email_addr ;
 
    emails_text -> email_location ;
+   emails_text -> email_origin_loc;
    
    subgraph cluster_0 {
             es_email ;

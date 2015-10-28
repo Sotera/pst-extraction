@@ -20,11 +20,15 @@ place pst files in `pst-extract/pst/`
 
 ** Location Extraction **
 
+__Locations extracted from text__
 1. `bin/build_clavin_index.sh` setup location index (only needs to be
 run once)
 2. `bin/run_location_extract.sh` extracts locations from text body
 uses input from `bin/run_spark_content_split` task
 
+__locations extracted by IP__
+1. `bin/setup_geo2ip.sh` setup geoip index
+2. `bin/run_spark_originating_location.sh` extracts location from ip address
 
 <br /><br />
 
