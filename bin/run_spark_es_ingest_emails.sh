@@ -5,7 +5,7 @@ set -e
 
 INDEX=sample
 DOC_TYPE=emails
-CULSTERING_DOC_TYPE=lda-clustering
+CLUSTERING_DOC_TYPE=lda-clustering
 
 response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "localhost:9200/${INDEX}")
 
@@ -23,11 +23,13 @@ fi
 printf "create emails doc_type\n"
 curl -s -XPUT "http://localhost:9200/${INDEX}/${DOC_TYPE}/_mapping" --data-binary "@etc/emails.mapping"
 
+
 response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "localhost:9200/${INDEX}/${CLUSTERING_DOC_TYPE}")
 if [[ "$response" -eq 200 ]]; then
     printf "delete doc_type\n"
     curl -XDELETE "localhost:9200/${INDEX}/${CLUSTERING_DOC_TYPE}"
 fi
+
 printf "create lda-clustering doc_type\n"
 curl -s -XPUT "http://localhost:9200/${INDEX}/${CLUSTERING_DOC_TYPE}/_mapping" --data-binary "@etc/lda-clustering.mapping"
 
