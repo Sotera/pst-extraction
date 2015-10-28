@@ -20,14 +20,14 @@ place pst files in `pst-extract/pst/`
 
 ** Location Extraction **
 
-__Locations extracted from text__
+__Locations extracted from text__<br/>
 1. `bin/build_clavin_index.sh` setup location index (only needs to be
-run once)
+run once)<br />
 2. `bin/run_location_extract.sh` extracts locations from text body
 uses input from `bin/run_spark_content_split` task
 
-__locations extracted by IP__
-1. `bin/setup_geo2ip.sh` setup geoip index
+__Locations extracted by IP__<br/>
+1. `bin/setup_geo2ip.sh` setup geoip index <br />
 2. `bin/run_spark_originating_location.sh` extracts location from ip address
 
 <br /><br />
@@ -35,7 +35,6 @@ __locations extracted by IP__
 ![Workflow](etc/workflow.png?raw=true "extraction workflow")
 
 
+<br /> <br />
 
-
-This product includes GeoLite2 data created by MaxMind, available from
-<a href="http://www.maxmind.com">http://www.maxmind.com</a>.
+This product includes GeoLite2 data created by MaxMind, available from [http://www.maxmind.com](http://www.maxmind.com).
