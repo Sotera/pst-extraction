@@ -11,7 +11,7 @@ response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "
 
 if [[ "$response" -eq 404 ]]; then
     printf "create index ${INDEX}\n"
-    curl -s -XPOST "http://localhost:9200/${INDEX}" -d '{  "settings": { "index": { "mapping.allow_type_wrapper": true  }  }  }'    
+    curl -s -XPUT "http://localhost:9200/${INDEX}" --data-binary "@etc/settings.json"    
 fi
 
 response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "localhost:9200/${INDEX}/${DOC_TYPE}")
