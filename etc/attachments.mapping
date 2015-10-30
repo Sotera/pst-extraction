@@ -24,6 +24,10 @@
       "id": {
         "type": "string",
         "index": "not_analyzed"                    
+      },
+      "datetime" : {
+        "type" : "date",
+        "format" : "dateOptionalTime"
       }
     }
   }
