@@ -1,73 +1,99 @@
 {
-  "email_address": {
-    "properties": {
-      "addr": {
-        "type": "string",
-        "index": "not_analyzed",        
-	"copy_to": "domain"
+  "email_address" : {
+    "properties" : {
+      "addr" : {
+        "type" : "string",
+        "index" : "not_analyzed",
+        "copy_to" : [ "domain" ]
       },
-      "domain":{
-        "type": "string",
-        "analyzer":"domain_analyzer"        
-      },
-      "community": {
-        "type": "string",
-        "index": "not_analyzed"                            
-      },
-      "community_id": {
-        "type": "long"
-      },
-      "first_received": {
-        "format": "dateOptionalTime",
-        "type": "date"
-      },
-      "first_sent": {
-        "format": "dateOptionalTime",
-        "type": "date"
-      },
-      "idx": {
-        "type": "long"
-      },
-      "last_received": {
-        "format": "dateOptionalTime",
-        "type": "date"
-      },
-      "last_sent": {
-        "format": "dateOptionalTime",
-        "type": "date"
-      },
-      "received_count": {
-        "type": "long"
-      },
-      "recepient": {
-        "properties": {
-          "datetime": {
-            "format": "dateOptionalTime",
-            "type": "date"
+      "attachments" : {
+        "type" : "nested",
+        "include_in_parent" : true,
+        "properties" : {
+          "content_extracted" : {
+            "type" : "boolean"
           },
-          "email_id": {
-            "type": "string"
+          "datetime" : {
+            "type" : "date",
+            "format" : "dateOptionalTime"
+          },
+          "email_id" : {
+            "type" : "string"
+          },
+          "extension" : {
+            "type" : "string"
+          },
+          "filename" : {
+            "type" : "string"
+          },
+          "guid" : {
+            "type" : "string"
           }
         }
       },
-      "sender": {
-        "properties": {
-          "datetime": {
-            "format": "dateOptionalTime",
-            "type": "date"
+      "attachments_count" : {
+        "type" : "long"
+      },
+      "community" : {
+        "type" : "string",
+        "index" : "not_analyzed"
+      },
+      "community_id" : {
+        "type" : "long"
+      },
+      "domain" : {
+        "type" : "string",
+        "analyzer" : "domain_analyzer"
+      },
+      "first_received" : {
+        "type" : "date",
+        "format" : "dateOptionalTime"
+      },
+      "first_sent" : {
+        "type" : "date",
+        "format" : "dateOptionalTime"
+      },
+      "idx" : {
+        "type" : "long"
+      },
+      "last_received" : {
+        "type" : "date",
+        "format" : "dateOptionalTime"
+      },
+      "last_sent" : {
+        "type" : "date",
+        "format" : "dateOptionalTime"
+      },
+      "received_count" : {
+        "type" : "long"
+      },
+      "recepient" : {
+        "properties" : {
+          "datetime" : {
+            "type" : "date",
+            "format" : "dateOptionalTime"
           },
-          "email_id": {
-            "type": "string",
-            "index": "not_analyzed"                                
+          "email_id" : {
+            "type" : "string"
           }
         }
       },
-      "sent_count": {
-        "type": "long"
+      "sender" : {
+        "properties" : {
+          "datetime" : {
+            "type" : "date",
+            "format" : "dateOptionalTime"
+          },
+          "email_id" : {
+            "type" : "string",
+            "index" : "not_analyzed"
+          }
+        }
+      },
+      "sent_count" : {
+        "type" : "long"
       }
     }
   }
 }
 
-
-}
