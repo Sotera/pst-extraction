@@ -50,8 +50,9 @@ def identity(x):
 def email_to_addrs(o):
     j = json.loads(o)
     email_id = j.get('id')
+    email_dt = j.get('datetime')
     removeContent = partial(rmkey, 'content')
-    attachments = [dict(attach, email_id=email_id) for attach in map(removeContent, j.get('attachments', []))]
+    attachments = [dict(attach, email_id=email_id, datetime=email_dt) for attach in map(removeContent, j.get('attachments', []))]
     sender = one(j.get('senders', []))
     tos = j.get('tos', [])
     ccs = j.get('ccs', [])
