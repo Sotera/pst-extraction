@@ -78,7 +78,7 @@ def download(srv, outdir, limit):
     c = counter()
     l = len(msgids)
     
-    for msgid in msgids:
+    for msgid in reversed(msgids):
         uid = getUIDForMessage(srv, msgid)
         fldr ="{}/".format(outdir)
         i = c.next()
