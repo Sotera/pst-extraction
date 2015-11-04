@@ -97,7 +97,6 @@ if __name__ == "__main__":
     sc = SparkContext(conf=conf)
     rdd_raw_emails = sc.textFile(args.input_path_emails).cache()
     rdd_addr_to_emails = rdd_raw_emails.flatMap(email_to_addrs).keyBy(lambda x: x['addr']).groupByKey().map(in_out).cache()
-    #{"recepient": [], "addr": "loraleivp@erols.com", "sender": []}
     #rdd_addr_to_emails.saveAsTextFile(args.output_path_email_address)
     
     rdd_edges = rdd_raw_emails.flatMap(sender_receiver).reduceByKey(lambda a,b: a+b).map(lambda x: (x[0][0], x[0][1], x[1])).cache()
