@@ -10,10 +10,10 @@ def load_lda_map(lda_file, base_index):
 
     with open(lda_file) as f:
         clusters = [json.loads(line) for line in f.readlines()]
-    print clusters
+    #print clusters
     for cluster in clusters:
         res = es.index(index=base_index, doc_type='lda-clustering', body=cluster)
-        print(res['created'])
+        #print(res['created'])
 
 if __name__ == "__main__":
     desc='Ingest the lda-cluster map into elasticsearch.'
