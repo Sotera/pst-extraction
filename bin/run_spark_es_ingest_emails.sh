@@ -3,39 +3,43 @@
 set +x
 set -e
 
-INDEX=sample
-DOC_TYPE=emails
-CLUSTERING_DOC_TYPE=lda-clustering
-
-response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "localhost:9200/${INDEX}")
-
-if [[ "$response" -eq 404 ]]; then
-    printf "create index ${INDEX}\n"
-    curl -s -XPUT "http://localhost:9200/${INDEX}" --data-binary "@etc/settings.json"    
+if [[ $# -lt 1 ]]; then
+    printf "missing configuration\n"
+    exit 1
 fi
 
-response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "localhost:9200/${INDEX}/${DOC_TYPE}")
+source $1
+
+
+response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}")
+
+if [[ "$response" -eq 404 ]]; then
+    printf "create index ${ES_INDEX}\n"
+    curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}" --data-binary "@etc/settings.json"    
+fi
+
+response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILS}")
 if [[ "$response" -eq 200 ]]; then
     printf "delete doc_type\n"
-    curl -XDELETE "localhost:9200/${INDEX}/${DOC_TYPE}"
+    curl -XDELETE "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILS}"
 fi
 
 printf "create emails doc_type\n"
-curl -s -XPUT "http://localhost:9200/${INDEX}/${DOC_TYPE}/_mapping" --data-binary "@etc/emails.mapping"
+curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILS}/_mapping" --data-binary "@etc/emails.mapping"
 
 
-response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "localhost:9200/${INDEX}/${CLUSTERING_DOC_TYPE}")
+response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_CLUSTERING}")
 if [[ "$response" -eq 200 ]]; then
     printf "delete doc_type\n"
-    curl -XDELETE "localhost:9200/${INDEX}/${CLUSTERING_DOC_TYPE}"
+    curl -XDELETE "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_CLUSTERING}"
 fi
 
 printf "create lda-clustering doc_type\n"
-curl -s -XPUT "http://localhost:9200/${INDEX}/${CLUSTERING_DOC_TYPE}/_mapping" --data-binary "@etc/lda-clustering.mapping"
+curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_CLUSTERING}/_mapping" --data-binary "@etc/lda-clustering.mapping"
 
 printf "ingest lda clusters\n"
-./src/upload_lda_clusters.py ${INDEX}
+./src/upload_lda_clusters.py ${ES_INDEX}
 
 printf "ingest entity documents\n"
 
-spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.1.1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-entity/part-*" "${INDEX}/${DOC_TYPE}"
+spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.1.1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-entity/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}"

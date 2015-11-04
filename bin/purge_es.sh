@@ -3,7 +3,16 @@
 set +x
 set -e
 
-INDEX=sample
-DOC_TYPE=emails
+if [[ $# -lt 1 ]]; then
+    printf "missing configuration\n"
+    exit 1
+fi
 
-curl -XDELETE "http://localhost:9200/$INDEX/$1"
+source $1
+
+if [[ $# -lt 2 ]]; then
+    printf "missing doc_type argument\n"
+    exit 1
+fi
+
+curl -XDELETE "${ES_HOST}:${ES_PORT}/${ES_INDEX}/$2"
