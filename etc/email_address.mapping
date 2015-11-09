@@ -6,7 +6,7 @@
         "index" : "not_analyzed",
         "copy_to" : [ "domain" ]
       },
-      "attachments" : {
+      "sender_attachments" : {
         "type" : "nested",
         "include_in_parent" : true,
         "properties" : {
@@ -68,6 +68,8 @@
         "type" : "long"
       },
       "recepient" : {
+        "type" : "nested",
+        "include_in_parent" : true,
         "properties" : {
           "datetime" : {
             "type" : "date",
@@ -79,6 +81,8 @@
         }
       },
       "sender" : {
+        "type" : "nested",
+        "include_in_parent" : true,
         "properties" : {
           "datetime" : {
             "type" : "date",

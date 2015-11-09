@@ -22,6 +22,7 @@ if __name__ == "__main__":
 
     parser.add_argument("input_path", help="lines of json to ingest")
     parser.add_argument("es_resource", help="index and doc_type (my-index/doc)")    
+    parser.add_argument("--id_field", help="id field to map into es")    
     parser.add_argument("--es_nodes", default="127.0.0.1", help="es.nodes")
     parser.add_argument("--es_port", default="9200", help="es.port")    
 
@@ -37,6 +38,9 @@ if __name__ == "__main__":
         #"es.nodes.client.only" : "true",
         "es.input.json" : "yes"
     }
+    
+    if args.id_field:
+      es_write_conf["es.mapping.id"] = args.id_field
 
     hdfs_path = args.input_path
     d = sc.textFile(hdfs_path).map(lambda x : ("key", x))

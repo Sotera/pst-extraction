@@ -1,10 +1,11 @@
 {
 
   "emails" : {
-        "_id" : {
-          "path" : "id"
-        },
         "properties" : {
+          "addrs" : {
+            "type" : "string",
+            "index" : "not_analyzed"
+          },
           "attachments" : {
             "properties" : {
               "content" : {
@@ -28,7 +29,8 @@
           },
           "bccs" : {
             "type" : "string",
-            "index" : "not_analyzed"
+            "index" : "not_analyzed",
+            "copy_to" : ["addrs"]
           },
           "bccs_line" : {
             "type" : "string"
@@ -41,7 +43,8 @@
           },
           "ccs" : {
             "type" : "string",
-            "index" : "not_analyzed"
+            "index" : "not_analyzed",
+            "copy_to" : ["addrs"]
           },
           "ccs_line" : {
             "type" : "string"
@@ -95,7 +98,8 @@
             "type" : "string"
           },
           "id" : {
-            "type" : "string"
+            "type" : "string",
+            "index" : "not_analyzed"
           },
           "inreplyto" : {
             "type" : "string"
@@ -111,7 +115,8 @@
           },
           "senders" : {
             "type" : "string",
-            "index" : "not_analyzed"
+            "index" : "not_analyzed",
+            "copy_to" : ["addrs"]
           },
           "senders_line" : {
             "type" : "string"
@@ -121,14 +126,12 @@
           },
           "tos" : {
             "type" : "string",
-            "index" : "not_analyzed"
+            "index" : "not_analyzed",
+            "copy_to" : ["addrs"]
           },
           "tos_line" : {
             "type" : "string"
           }
         }
       }
-
-
-
 }

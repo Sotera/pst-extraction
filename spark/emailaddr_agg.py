@@ -69,7 +69,7 @@ def in_out(t):
     sender_emails, recepient_emails = split_on_condition(arr, lambda x: x['type'] == 'sender')
     attachments = reduce(lambda a,b: a+b.get('attachments',[]), sender_emails, [])
     return {'addr' : addr,
-            'attachments' : attachments,
+            'sender_attachments' : attachments,
             'sender' : map(lambda x: rmkeys(['addr', 'type', 'attachments'], x), sender_emails), 
             'recepient': map(lambda x: rmkeys(['addr', 'type', 'attachments'], x), recepient_emails)}
 
