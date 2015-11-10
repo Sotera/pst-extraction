@@ -12,7 +12,7 @@ def load_lda_map(lda_file, base_index):
         clusters = [json.loads(line) for line in f.readlines()]
     #print clusters
     for cluster in clusters:
-        res = es.index(index=base_index, doc_type='lda-clustering', body=cluster)
+        res = es.index(index=base_index, doc_type='lda-clustering', id=cluster["idx"], body=cluster)
         #print(res['created'])
 
 if __name__ == "__main__":

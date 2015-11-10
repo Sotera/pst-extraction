@@ -133,7 +133,7 @@ if __name__ == "__main__":
                     
         o['sent_count'] = len(o.get('sender', []))
         o['received_count'] = len(o.get('recepient', []))
-        o['attachments_count'] = len(o.get('attachments', []))
+        o['attachments_count'] = len(o.get('sender_attachments', []))
         o['first_sent'] = apply_filter_map(o.get('sender', []), min, identity, lambda x: x.get('datetime', None))
         o['first_received'] = apply_filter_map(o.get('recepient', []), min, identity, lambda x: x.get('datetime', None))
         o['last_received'] =  apply_filter_map(o.get('recepient', []), max, identity, lambda x: x.get('datetime', None))

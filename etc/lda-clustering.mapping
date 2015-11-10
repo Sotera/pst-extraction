@@ -1,8 +1,5 @@
 {
   "lda-clustering": {
-    "_id" : {
-      "path" : "idx"
-    },
     "properties": {
       "topic": {
         "properties": {
