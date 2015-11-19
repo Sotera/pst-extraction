@@ -191,6 +191,7 @@ def extract(email_id, message, categories):
         attach.append({ "filename" : fileName,
                         "guid" : filename_guid,
                         "extension" : extension,
+                        "filesize": len(bstr),
                         "contents64" : b64
         })
 
