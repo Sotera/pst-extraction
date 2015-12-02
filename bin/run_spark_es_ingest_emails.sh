@@ -38,8 +38,8 @@ printf "create lda-clustering doc_type\n"
 curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_CLUSTERING}/_mapping" --data-binary "@etc/lda-clustering.mapping"
 
 printf "ingest lda clusters\n"
-./src/upload_lda_clusters.py ${ES_INDEX}
+./src/upload_lda_clusters.py ${ES_INDEX} --es_nodes ${ES_NODES}
 
 printf "ingest entity documents\n"
 
-spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.2.0-m1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-entity/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}" --id_field id
+spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.2.0-m1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-entity/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}" --id_field id  --es_nodes ${ES_NODES}

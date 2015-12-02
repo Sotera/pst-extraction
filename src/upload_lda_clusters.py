@@ -5,8 +5,10 @@ import argparse
 import json
 from elasticsearch import Elasticsearch
 
-def load_lda_map(lda_file, base_index):
-    es = Elasticsearch()
+def load_lda_map(nodes, lda_file, base_index):
+    print "es connecting to " + str(nodes)
+
+    es = Elasticsearch(nodes)
 
     with open(lda_file) as f:
         clusters = [json.loads(line) for line in f.readlines()]
@@ -23,7 +25,9 @@ if __name__ == "__main__":
         epilog=desc)
 
     parser.add_argument("index", help="index name")
-
+    parser.add_argument("--es_nodes", default="127.0.0.1:9200", help="es nodes")
+    
     args = parser.parse_args()
-
-    load_lda_map("./tmp/lda.map.txt", args.index)
+    
+    nodes=[{"host":str(node.split(':')[0]), "port":int(node.split(':')[1])} for node in args.es_nodes.split(',')]   
+    load_lda_map(nodes, "./tmp/lda.map.txt", args.index)
