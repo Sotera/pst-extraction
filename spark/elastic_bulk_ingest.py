@@ -25,9 +25,9 @@ if __name__ == "__main__":
     parser.add_argument("--id_field", help="id field to map into es")    
     parser.add_argument("--es_nodes", default="127.0.0.1:9200", help="es.nodes")
 
-
     args = parser.parse_args()
 
+    print "NODES:"+str(args.es_nodes)
     conf = SparkConf().setAppName("Elastic Ingest")
     sc = SparkContext(conf=conf)
 

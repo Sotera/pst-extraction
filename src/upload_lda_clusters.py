@@ -29,5 +29,5 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
     
-    nodes=[{"host":str(node.split(':')[0]), "port":int(node.split(':')[1])} for node in args.es_nodes.split(',')]   
+    nodes=[{"host":str(node), "port":9200} for node in args.es_nodes.split(',')]   
     load_lda_map(nodes, "./tmp/lda.map.txt", args.index)
