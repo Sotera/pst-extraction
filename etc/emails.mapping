@@ -52,7 +52,8 @@
           "communities" : {
             "properties" : {
               "community" : {
-                "type" : "string"
+                "type" : "string",
+                "index" : "not_analyzed"
               },
               "community_id" : {
                 "type" : "long"

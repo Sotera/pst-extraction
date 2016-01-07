@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+#TODO
+# -XDELETE fails because the ReST call has been removed from elastic search 2.x we need to replace with a check to somethig like
+# curl -XHEAD -i 'http://localhost:9200/sample/emails'
+# which will respond with 200 or 404 accordingly
+# TODO
+
 set +x
 set -e
 
