@@ -8,7 +8,7 @@ from functools import partial
 from pyspark import SparkContext, SparkConf
 
 
-def extract_entities(doc_iter):
+def extract_entities(doc_iter, extract_field='body'):
     sys.path.append(".")
     from mitie import tokenize_with_offsets, named_entity_extractor
     print "loading NER model..."
@@ -16,39 +16,40 @@ def extract_entities(doc_iter):
 
     for doc in doc_iter:
         doc_id = doc["id"]
-        body = doc["body"]
-        body = re.sub(r'[^\x00-\x7F]',' ', body)
-        body = body.replace("[:newline:]", "           ")
-        body = body.encode("ascii")
-        #tokens = tokenize(body)
-        tokens = tokenize_with_offsets(body)
-        entities_markup = ner.extract_entities(tokens)
-        #results contains [(tag, entity, offset, score)]
-        results = [
-            (tag, " ".join([tokens[i][0] for i in rng]), ",".join([str(tokens[i][1]) for i in rng]), score)
-            for rng, tag, score in entities_markup ]
-        
-        entity_doc = {}
-        entity_doc["entity_content"] = results
-        entity_doc["entity_all"] = []
-        entity_doc["entity_location"] = []
-        entity_doc["entity_organization"] = []
-        entity_doc["entity_person"] = []
-        entity_doc["entity_misc"] = []
-        
-        for tag, entity, rng, score in results:
-            entity_doc["entity_all"].append(entity)
-            
-            if tag == 'LOCATION' and score > 0.3:
-                entity_doc["entity_location"].append(entity)
-            elif tag == 'ORGANIZATION' and score > 0.5:
-                entity_doc["entity_organization"].append(entity)
-            elif tag == 'PERSON' and score > 0.3:
-                entity_doc["entity_person"].append(entity)
-            elif score > 0.5:
-                entity_doc["entity_misc"].append(entity)
-     
-        doc["entities"] = entity_doc
+        if extract_field in doc:
+            body = doc[extract_field]
+            body = re.sub(r'[^\x00-\x7F]',' ', body)
+            body = body.replace("[:newline:]", "           ")
+            body = body.encode("ascii")
+            #tokens = tokenize(body)
+            tokens = tokenize_with_offsets(body)
+            entities_markup = ner.extract_entities(tokens)
+            #results contains [(tag, entity, offset, score)]
+            results = [
+                (tag, " ".join([tokens[i][0] for i in rng]), ",".join([str(tokens[i][1]) for i in rng]), score)
+                for rng, tag, score in entities_markup ]
+
+            entity_doc = {}
+            entity_doc["entity_content"] = results
+            entity_doc["entity_all"] = []
+            entity_doc["entity_location"] = []
+            entity_doc["entity_organization"] = []
+            entity_doc["entity_person"] = []
+            entity_doc["entity_misc"] = []
+
+            for tag, entity, rng, score in results:
+                entity_doc["entity_all"].append(entity)
+
+                if tag == 'LOCATION' and score > 0.3:
+                    entity_doc["entity_location"].append(entity)
+                elif tag == 'ORGANIZATION' and score > 0.5:
+                    entity_doc["entity_organization"].append(entity)
+                elif tag == 'PERSON' and score > 0.3:
+                    entity_doc["entity_person"].append(entity)
+                elif score > 0.5:
+                    entity_doc["entity_misc"].append(entity)
+
+            doc["entities"] = entity_doc
         yield doc
 
 def dump(x):
@@ -64,6 +65,7 @@ if __name__ == "__main__":
     
     parser.add_argument("input_emails_content_path", help="email json")
     parser.add_argument("output_emails_with_entities", help="output directory for spark results emails with entity fields")
+    parser.add_argument("--extract_field", default="body", help="Set field for MITIE to run entity extraction on.")
 
     args = parser.parse_args()
 
@@ -71,5 +73,5 @@ if __name__ == "__main__":
     sc = SparkContext(conf=conf)
 
     rdd_emails = sc.textFile(args.input_emails_content_path).coalesce(50).map(lambda x: json.loads(x))
-    rdd_emails.mapPartitions(extract_entities).map(dump).saveAsTextFile(args.output_emails_with_entities)
+    rdd_emails.mapPartitions(lambda docs: extract_entities(docs, args.extract_field)).map(dump).saveAsTextFile(args.output_emails_with_entities)
 

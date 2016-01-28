@@ -36,9 +36,10 @@ def skip(iterable, at_start=0, at_end=0):
 def mbox_files(dir_):
     for root, _, files in os.walk(dir_):
         for f in files:
-            if f == "mbox":
+            if f.endswith("mbox"):
                 yield os.path.abspath("{}/{}".format(root, f))
-
+            else:
+                print "{} is not an .mbox file -- If you think it should be indexed pleases rename".format(f)
 
 if __name__ == "__main__":
 

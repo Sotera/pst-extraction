@@ -27,8 +27,8 @@ fi
 
 response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}")
 if [[ "$response" -eq 200 ]]; then
-    printf "delete doc_type\n"
-    curl -XDELETE "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}"
+    printf "WARNING:  You must clear the index <${ES_INDEX}> before ingesting data."
+    exit 1
 fi
 
 printf "create doc_type\n"

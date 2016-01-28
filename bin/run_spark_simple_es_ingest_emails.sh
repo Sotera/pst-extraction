@@ -6,9 +6,6 @@
 # which will respond with 200 or 404 accordingly
 # TODO
 
-set +x
-set -e
-
 if [[ $# -lt 1 ]]; then
     printf "missing configuration\n"
     exit 1
@@ -26,8 +23,8 @@ fi
 
 response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILS}")
 if [[ "$response" -eq 200 ]]; then
-    printf "delete doc_type\n"
-    curl -XDELETE "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILS}"
+    printf "WARNING:  You must clear the index <${ES_INDEX}> before ingesting data."
+    exit 1
 fi
 
 printf "create emails doc_type\n"

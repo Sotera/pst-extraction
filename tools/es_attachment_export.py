@@ -134,8 +134,8 @@ def export_attachments(data_set_id, outfile, sender='', attachment_extension='jp
     if not data_set_id:
         print "invalid service call - missing index"
         return 1
-
-    es = Elasticsearch()
+    # elasticsearch.exceptions.ConnectionTimeout: ConnectionTimeout caused by - ReadTimeoutError(HTTPConnectionPool(host='10.1.70.143', port=9200): Read timed out. (read timeout=10))
+    es = Elasticsearch([{"host" : "10.1.70.143", "port" : 9200}], timeout=60)
 
     # TODO get accurate count -- this is not strictly needed as attachments will be accessed as inner docs on the email_address
     max_inner_attachments_returned = 100000
@@ -205,7 +205,8 @@ def export_emails_archive(data_set_id, email_ids=["f9c9c59a-7fe8-11e5-bb05-08002
     # if not email:
     #     return tangelo.HTTPStatusCode(400, "invalid service call - missing attachment_id")
 
-    es = Elasticsearch()
+    # elasticsearch.exceptions.ConnectionTimeout: ConnectionTimeout caused by - ReadTimeoutError(HTTPConnectionPool(host='10.1.70.143', port=9200): Read timed out. (read timeout=10))
+    es = Elasticsearch([{"host" : "10.1.70.143", "port" : 9200}], request_timeout=60)
     # TODO can implement with multiple doc_types and combine attachments in
     emails = es.mget(index=data_set_id, doc_type="emails", body={"docs":[{"_id":id} for id in email_ids]})
 

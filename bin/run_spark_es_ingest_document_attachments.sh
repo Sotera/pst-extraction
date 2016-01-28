@@ -17,15 +17,16 @@ if [[ "$response" -eq 404 ]]; then
     curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}" --data-binary "@etc/settings.json" 
 fi
 
-response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}")
+response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_ATTACHMENTS}")
 if [[ "$response" -eq 200 ]]; then
     printf "WARNING:  You must clear the index <${ES_INDEX}> before ingesting data."
     exit 1
 fi
 
 printf "create doc_type\n"
-curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}/_mapping" --data-binary "@etc/email_address.mapping"
+curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_ATTACHMENTS}/_mapping" --data-binary "@etc/attachments.mapping"
+
 
 printf "ingest documents\n"
 
-spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.2.0-m1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emailaddr/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}"  --es_nodes ${ES_NODES}
+spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.2.0-m1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-attachments_entities/part-*" "${ES_INDEX}/${ES_DOC_TYPE_ATTACHMENTS}" --id_field guid  --es_nodes ${ES_NODES}
