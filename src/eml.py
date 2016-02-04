@@ -33,12 +33,19 @@ def skip(iterable, at_start=0, at_end=0):
         queue.append(x)
         yield queue.popleft()
 
+count = 0
 def eml_files(dir_):
+    global count
     for root, _, files in os.walk(dir_):
-        for f in files:
-            _, ext = os.path.splitext(f)
-            if ext.replace(".","").lower() == "eml":
-                yield os.path.abspath("{}/{}".format(root, f))
+        for filename in files:
+#            filename, ext = os.path.splitext(filename)
+#            if ext.replace(".","").lower() == "eml":
+            if filename.endswith("_mime.txt") or filename.endswith(".eml"):
+                count+=1
+                print "Processing message: %s"%str(filename)
+                yield os.path.abspath("{}/{}".format(root, filename))
+            else:
+                print "Skipping message: %s"%str(filename)
 
 if __name__ == "__main__":
 
@@ -72,4 +79,5 @@ examples:
                 print "exception line: {} | {} ".format(i, e.message)
 
             if i % 1000 == 0:
-                prn("completed line: {}".format(i)) 
+                prn("completed line: {}".format(i))
+    print "Total processed: {}".format(count) 
