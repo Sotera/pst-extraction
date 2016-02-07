@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import shutil
+import base64
 from functions import counter
 
 def slurp(filePath):
@@ -11,6 +12,10 @@ def slurp(filePath):
 def slurpA(filePath):
     with open(filePath) as x: data = x.read().splitlines()
     return data
+
+def slurpBase64(filePath):
+    with open(filePath, 'rb') as x: data = x.read()
+    return str(base64.b64encode(data))
 
 def spit(filePath, data, overwrite=False):
     mode= 'w' if overwrite else 'a'
