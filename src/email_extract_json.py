@@ -156,7 +156,22 @@ def extract(email_id, message, categories):
 
     for part in message.walk():
         if part.get_content_type() == 'text/plain':
-            msg = msg + "\n" + part.get_payload() 
+            if msg:
+                msg += "\n=============================Next Part==============================\n"
+            if part.get_all('Content-Transfer-Encoding', [''])[0] == 'base64':
+                msg = msg + part.get_payload(decode=True)
+            else:
+                msg = msg + part.get_payload()
+        #     get the charset for the part
+        #     part.get_param('charset')
+        #     part.get_all('Content-Transfer-Encoding')
+        #     TODO if also Content-Transfer_encoding = basse64
+        # TODO and charset = ????
+        # TODO need to decode here
+        # TODO also this may happen mutiple times and probable have to add  each back to the txt msg
+        # TODO or at least make them attachments so they are available for view and indexing later
+        # TODO ALSO  -- RIGHT NOW MISSING THIS HTML PORTION
+        # TODO this will often show up as Content-Type:'text/html' with similar text
         if part.get_content_type() == 'message/delivery-status':
             continue
         if part.get_content_maintype() == 'multipart':
