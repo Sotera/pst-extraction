@@ -46,11 +46,12 @@ def process_image(byte64_jpeg, filename):
 
 
 def process_attachment(attachment):
-    attachment["locations"] = {}
-    if attachment and "contents64" in attachment and "extension" in attachment and (attachment["extension"] == ".jpg" or attachment["extension"] == ".jpeg"):
-        gps = process_image(attachment["contents64"], attachment["filename"])
-        if gps:
-            attachment["locations"]["gps"] = gps
+    if attachment:
+        attachment["locations"] = {}
+        if "contents64" in attachment and "extension" in attachment and (attachment["extension"] == ".jpg" or attachment["extension"] == ".jpeg"):
+            gps = process_image(attachment["contents64"], attachment["filename"])
+            if gps:
+                attachment["locations"]["gps"] = gps
     return attachment
 
 def process_email(email):

@@ -155,13 +155,17 @@ def extract(email_id, message, categories):
     attach_count = counter()
 
     for part in message.walk():
-        if part.get_content_type() == 'text/plain':
+        # We only want plain text which is not an attachment
+        # TODO do we need to handle fileName == 'rtf-body.rtf'?
+        if part.get_content_type() == 'text/plain' and not part.get('Content-Disposition'):
             if msg:
                 msg += "\n=============================Next Part==============================\n"
-            if part.get_all('Content-Transfer-Encoding', [''])[0] == 'base64':
-                msg = msg + part.get_payload(decode=True)
-            else:
-                msg = msg + part.get_payload()
+            decode = part.get_all('Content-Transfer-Encoding', [''])[0] == 'base64' or part.get_all('Content-Transfer-Encoding', [''])[0] == 'quoted-printable'
+
+            text = part.get_payload(decode=decode)
+            if text.strip():
+                msg += text
+
         #     get the charset for the part
         #     part.get_param('charset')
         #     part.get_all('Content-Transfer-Encoding')
