@@ -62,6 +62,7 @@ def extract_entities(doc_iter, extract_field='body', extracted_lang_field='body_
             mitie_entities = entities(doc[extract_field], lang)
             doc["entities"] = {extract_field+"_entities" : mitie_entities}
             doc["entities"]["original_lang"] = lang
+            doc["entities"][extract_field+"_entities_translated"] = {}
 
         #     Now extract entities for any translated fields
             if not lang == 'en':
