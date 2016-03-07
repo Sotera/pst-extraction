@@ -30,34 +30,6 @@
       "datetime" : {
         "type" : "date",
         "format" : "dateOptionalTime"
-      },
-      "entities" : {
-        "properties" : {
-          "entity_all" : {
-            "type" : "string",
-            "index" : "not_analyzed"
-          },
-          "entity_content" : {
-            "type" : "string",
-            "index" : "not_analyzed"
-          },
-          "entity_location" : {
-            "type" : "string",
-            "index" : "not_analyzed"
-          },
-          "entity_misc" : {
-            "type" : "string",
-            "index" : "not_analyzed"
-          },
-          "entity_organization" : {
-            "type" : "string",
-            "index" : "not_analyzed"
-          },
-          "entity_person" : {
-            "type" : "string",
-            "index" : "not_analyzed"
-          }
-        }
       }
     }
   }

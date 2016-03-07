@@ -1,6 +1,5 @@
 import os
 import base64
-import cStringIO
 
 import argparse
 import json

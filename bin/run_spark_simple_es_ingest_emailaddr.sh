@@ -18,21 +18,21 @@ fi
 
 source $1
 
-response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}")
+#response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}")
 
-if [[ "$response" -eq 404 ]]; then
-    printf "create index ${ES_INDEX}\n"
-    curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}" --data-binary "@etc/settings.json" 
-fi
+#if [[ "$response" -eq 404 ]]; then
+#    printf "create index ${ES_INDEX}\n"
+#    curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}" --data-binary "@etc/settings.json" 
+#fi
 
-response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}")
-if [[ "$response" -eq 200 ]]; then
-    printf "WARNING:  You must clear the index <${ES_INDEX}> before ingesting data."
-    exit 1
-fi
-
-printf "create doc_type\n"
-curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}/_mapping" --data-binary "@etc/email_address.mapping"
+#response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}")
+#if [[ "$response" -eq 200 ]]; then
+#    printf "WARNING:  You must clear the index <${ES_INDEX}> before ingesting data."
+#    exit 1
+#fi
+#
+#printf "create doc_type\n"
+#curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}/_mapping" --data-binary "@etc/email_address_mapping.json"
 
 printf "ingest documents\n"
 

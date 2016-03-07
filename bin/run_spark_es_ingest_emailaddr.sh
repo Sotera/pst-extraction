@@ -24,7 +24,7 @@ if [[ "$response" -eq 200 ]]; then
 fi
 
 printf "create doc_type\n"
-curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}/_mapping" --data-binary "@etc/email_address.mapping"
+curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}/_mapping" --data-binary "@etc/email_address_mapping.json"
 
 printf "ingest documents\n"
 

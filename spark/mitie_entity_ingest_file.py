@@ -27,11 +27,11 @@ def extract_entities(doc_iter, extract_field='body', extracted_lang_field='body_
             entities_markup = ner_models[lang].extract_entities(tokens)
             #results contains [(tag, entity, offset, score)]
             results = [
-                (tag, " ".join([tokens[i][0] for i in rng]), ",".join([str(tokens[i][1]) for i in rng]), score)
+                (tag, " ".join([tokens[i][0] for i in rng]), ",".join([str(tokens[i][1]) for i in rng]), "{0:.2f}".format(score))
                 for rng, tag, score in entities_markup ]
 
             entity_doc = {}
-            entity_doc["entity_content"] = results
+            entity_doc["entity_full"] = results
             entity_doc["entity_all"] = []
             entity_doc["entity_location"] = []
             entity_doc["entity_organization"] = []
@@ -60,13 +60,13 @@ def extract_entities(doc_iter, extract_field='body', extracted_lang_field='body_
             lang = lang if lang in ner_models else 'en'
 
             mitie_entities = entities(doc[extract_field], lang)
-            doc["entities"] = {extract_field+"_contents" : mitie_entities}
+            doc["entities"] = {extract_field+"_entities" : mitie_entities}
             doc["entities"]["original_lang"] = lang
 
         #     Now extract entities for any translated fields
             if not lang == 'en':
                 mitie_entities = entities(doc[extracted_translated_field], 'en')
-                doc["entities"] = {extract_field+"_contents_translated" : mitie_entities}
+                doc["entities"] = {extract_field+"_entities_translated" : mitie_entities}
 
         # TODO do attachments here instead of in a seperate execution of this stage
         yield doc

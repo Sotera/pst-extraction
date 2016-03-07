@@ -1,0 +1,176 @@
+{
+  "emails" : {
+    "properties" : {
+      "addrs" : {
+        "type" : "string",
+        "index" : "not_analyzed"
+      },
+      "attachments" : {
+        "properties" : {
+          "content" : {
+            "type" : "string"
+          },
+          "content_extracted" : {
+            "type" : "boolean"
+          },
+          "extension" : {
+            "type" : "string"
+          },
+          "filename" : {
+            "type" : "string",
+            "index" : "not_analyzed"
+          },
+          "guid" : {
+            "type" : "string",
+            "index" : "not_analyzed"
+          }
+        }
+      },
+      "bccs" : {
+        "type" : "string",
+        "index" : "not_analyzed",
+        "copy_to" : ["addrs"]
+      },
+      "bccs_line" : {
+        "type" : "string"
+      },
+      "body" : {
+        "type" : "string"
+      },
+      "categories" : {
+        "type" : "string"
+      },
+      "ccs" : {
+        "type" : "string",
+        "index" : "not_analyzed",
+        "copy_to" : ["addrs"]
+      },
+      "ccs_line" : {
+        "type" : "string"
+      },
+      "communities" : {
+        "properties" : {
+          "community" : {
+            "type" : "string",
+            "index" : "not_analyzed"
+          },
+          "community_id" : {
+            "type" : "long"
+          }
+        }
+      },
+      "communities_count" : {
+        "type" : "long"
+      },
+      "datetime" : {
+        "type" : "date",
+        "format" : "dateOptionalTime"
+      },
+      "entities": {
+        "properties": {
+          "original_lang": {
+            "type": "string"
+          },
+          "body_entities": {
+            "properties": {
+              "entity_location": {
+                "index": "not_analyzed",
+                "type": "string"
+              },
+              "entity_full": {
+                "index": "not_analyzed",
+                "type": "string"
+              },
+              "entity_organization": {
+                "index": "not_analyzed",
+                "type": "string"
+              },
+              "entity_misc": {
+                "index": "not_analyzed",
+                "type": "string"
+              },
+              "entity_all": {
+                "index": "not_analyzed",
+                "type": "string"
+              },
+              "entity_person": {
+                "index": "not_analyzed",
+                "type": "string"
+              }
+            }
+          },
+          "body_entities_translated": {
+            "properties": {
+              "entity_location": {
+                "index": "not_analyzed",
+                "type": "string"
+              },
+              "entity_full": {
+                "index": "not_analyzed",
+                "type": "string"
+              },
+              "entity_organization": {
+                "index": "not_analyzed",
+                "type": "string"
+              },
+              "entity_misc": {
+                "index": "not_analyzed",
+                "type": "string"
+              },
+              "entity_all": {
+                "index": "not_analyzed",
+                "type": "string"
+              },
+              "entity_person": {
+                "index": "not_analyzed",
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "forensic-bcc" : {
+        "type" : "string"
+      },
+      "id" : {
+        "type" : "string",
+        "index" : "not_analyzed"
+      },
+      "inreplyto" : {
+        "type" : "string"
+      },
+      "messageid" : {
+        "type" : "string"
+      },
+      "originating_ips" : {
+        "type" : "string"
+      },
+      "references" : {
+        "type" : "string"
+      },
+      "senders" : {
+        "type" : "string",
+        "index" : "not_analyzed",
+        "copy_to" : ["addrs"]
+      },
+      "senders_line" : {
+        "type" : "string"
+      },
+      "subject" : {
+        "type" : "string"
+      },
+      "starred" : {
+        "type" : "boolean",
+        "null_value": false
+      },
+      "tos" : {
+        "type" : "string",
+        "index" : "not_analyzed",
+        "copy_to" : ["addrs"]
+      },
+      "tos_line" : {
+        "type" : "string"
+      }
+    }
+  }
+}

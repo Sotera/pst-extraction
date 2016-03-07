@@ -28,7 +28,7 @@ if [[ "$response" -eq 200 ]]; then
 fi
 
 printf "create emails doc_type\n"
-curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILS}/_mapping" --data-binary "@etc/emails.mapping"
+curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_EMAILS}/_mapping" --data-binary "@etc/emails_mapping.json"
 
 
 response=$(curl -XHEAD -i --write-out %{http_code} --silent --output /dev/null "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_CLUSTERING}")
@@ -38,7 +38,7 @@ if [[ "$response" -eq 200 ]]; then
 fi
 
 printf "create lda-clustering doc_type\n"
-curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_CLUSTERING}/_mapping" --data-binary "@etc/lda-clustering.mapping"
+curl -s -XPUT "${ES_HOST}:${ES_PORT}/${ES_INDEX}/${ES_DOC_TYPE_CLUSTERING}/_mapping" --data-binary "@etc/lda-clustering_mapping.json"
 
 printf "ingest lda clusters\n"
 ./src/upload_lda_clusters.py ${ES_INDEX} --es_nodes ${ES_NODES}
