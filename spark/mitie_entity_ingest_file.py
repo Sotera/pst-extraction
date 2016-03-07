@@ -8,22 +8,23 @@ from functools import partial
 from pyspark import SparkContext, SparkConf
 
 
-def extract_entities(doc_iter, extract_field='body'):
+def extract_entities(doc_iter, extract_field='body', extracted_lang_field='body_lang', extracted_translated_field="body_translated"):
     sys.path.append(".")
     from mitie import tokenize_with_offsets, named_entity_extractor
-    print "loading NER model..."
-    ner = named_entity_extractor('ner_model.dat')
+    print "loading NER models..."
 
-    for doc in doc_iter:
-        doc_id = doc["id"]
-        if extract_field in doc:
-            body = doc[extract_field]
-            body = re.sub(r'[^\x00-\x7F]',' ', body)
-            body = body.replace("[:newline:]", "           ")
-            body = body.encode("ascii")
+    ner_models={}
+    ner_models['en'] = named_entity_extractor('ner_model_english.dat')
+    ner_models['es'] = named_entity_extractor('ner_model_spanish.dat')
+
+    def entities(extracted_text, lang):
+            extracted_text = re.sub(r'[^\x00-\x7F]',' ', extracted_text)
+            extracted_text = extracted_text.replace("[:newline:]", "           ")
+            extracted_text = extracted_text.encode("ascii")
             #tokens = tokenize(body)
-            tokens = tokenize_with_offsets(body)
-            entities_markup = ner.extract_entities(tokens)
+            tokens = tokenize_with_offsets(extracted_text)
+
+            entities_markup = ner_models[lang].extract_entities(tokens)
             #results contains [(tag, entity, offset, score)]
             results = [
                 (tag, " ".join([tokens[i][0] for i in rng]), ",".join([str(tokens[i][1]) for i in rng]), score)
@@ -48,8 +49,26 @@ def extract_entities(doc_iter, extract_field='body'):
                     entity_doc["entity_person"].append(entity)
                 elif score > 0.5:
                     entity_doc["entity_misc"].append(entity)
+            return entity_doc
 
-            doc["entities"] = entity_doc
+    for doc in doc_iter:
+        doc_id = doc["id"]
+        if extract_field in doc:
+            lang = doc.get(extracted_lang_field, 'en')
+
+            # TODO Hack to ensure at least en is run
+            lang = lang if lang in ner_models else 'en'
+
+            mitie_entities = entities(doc[extract_field], lang)
+            doc["entities"] = {extract_field+"_contents" : mitie_entities}
+            doc["entities"]["original_lang"] = lang
+
+        #     Now extract entities for any translated fields
+            if not lang == 'en':
+                mitie_entities = entities(doc[extracted_translated_field], 'en')
+                doc["entities"] = {extract_field+"_contents_translated" : mitie_entities}
+
+        # TODO do attachments here instead of in a seperate execution of this stage
         yield doc
 
 def dump(x):
