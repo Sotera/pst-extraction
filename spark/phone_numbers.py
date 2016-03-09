@@ -5,7 +5,7 @@ import json
 
 # 3rd-party modules
 import phonenumbers # https://github.com/daviddrysdale/python-phonenumbers
-from phonenumbers import geocoder
+from phonenumbers import geocoder, Leniency
 from phonenumbers import carrier
 from pyspark import SparkContext, SparkConf
 
@@ -39,10 +39,12 @@ def dump(x):
 #
 #   # followed by a digit
 #   [0-9]
+# Original
 # phonenum_candidate_regex_str = "[+(]?([0-9][- .()]?){6,12}[0-9]"
 phonenum_candidate_regex_str = "([+]?[0-9]?[0-9]?[0-9- .()]{6,15})"
 
 # phonenum_candidate_regex_str = "^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$"
+
 entity_descr = "phone numbers"
 EXCERPT_CHAR_BUFFER = 50
 
@@ -71,14 +73,15 @@ def find_phone_numbers(source_txt):
             # be parsed it will throw a NumberParseException.
             phone_number_obj = phonenumbers.parse(u'+'+value_normalized, None)
 
-            valid_num= phonenumbers.is_valid_number(phone_number_obj)
+            # More lenient than valid_num
             possible_num = phonenumbers.is_possible_number(phone_number_obj)
+            valid_num= phonenumbers.is_valid_number(phone_number_obj)
 
             # print "possible=%s valid=%s"%(str(possible_num), str(valid_num))
             # If the phonenumbers module thinks the number is invalid BUT it is preceded by text
             # with a phone-related keyword, we'll accept the number. If the number is invalid and
             # doesn't have a phone-related keyword, however, skip it.
-            if (not possible_num or not valid_num) and not contains_tel_keyword(excerpt_prefix[-15:]):# or len(value_normalized) < 7:
+            if (not possible_num or not valid_num) and not contains_tel_keyword(excerpt_prefix[-15:]):
                 continue
 
         except phonenumbers.phonenumberutil.NumberParseException as err:
@@ -88,9 +91,10 @@ def find_phone_numbers(source_txt):
             # preceded by a phone keyword, skip it.
             if not contains_tel_keyword(excerpt_prefix[-15:]):
                 continue
-            #There seems to be a bug with longer strings
-            if len(value_normalized) < 7:
-                continue
+
+        #There seems to be a bug with some strings that cause partial numbers to be returned
+        if len(value_normalized) < 7:
+            continue
 
         # If we got this far, it means we're accepting the number as a phone number. Extract a snippet
         # of text that follows the match.
@@ -120,8 +124,8 @@ def find_phone_numbers(source_txt):
             u"excerpt": excerpt,
             u"excerpt_value_start": excerpt_value_start,
             u"excerpt_value_stop": excerpt_value_stop,
-            u"meta_00": None,
-            u"meta_01": None
+            u"possible_area": None,
+            u"possible_carrier": None
         }
 
         # If the phonenumbers module was able to construct an actual phone number object, attempt to
@@ -129,11 +133,11 @@ def find_phone_numbers(source_txt):
         if phone_number_obj is not None:
             area_name = geocoder.description_for_number(phone_number_obj, "en")
             if area_name:
-                entity_dict[u'meta_00'] = u"Possible area: %s. " % area_name
+                entity_dict[u'possible_area'] = u"Possible area: %s. " % area_name
 
             carrier_name = carrier.name_for_number(phone_number_obj, "en")
             if carrier_name:
-                entity_dict[u'meta_01'] = u"Possible carrier: %s." % carrier_name
+                entity_dict[u'possible_carrier'] = u"Possible carrier: %s." % carrier_name
 
         tagged_phone_entities.append(entity_dict)
 
@@ -142,7 +146,8 @@ def find_phone_numbers(source_txt):
 
 
 def contains_tel_keyword(sample_str):
-    tel_keyword_list = ['call', 'tel', 'cell', 'mobi', 'landline', 'desk', 'office', 'home', 'work', 'phone', 'fax']
+    sample_str = sample_str.lower()
+    tel_keyword_list = ['call', 'tel', 'cel', 'mobi', 'landline', 'desk', 'office', 'home', 'work', 'phone', 'fax']
 
     # If the sample string contains *any* of the keywords return true
     if any(tel_keyword in sample_str for tel_keyword in tel_keyword_list):
@@ -161,6 +166,20 @@ def process_patition(emails):
     for email in emails:
         yield process_email(email)
 
+def test():
+    print find_phone_numbers( "PHONE: 1021-34662020/21/22/23/24")
+    print find_phone_numbers( "1021-34662020")
+    print "done.."
+    text = "Call me at ++1510-748-8230 if it's before 9:30, or on +703-4800500 after 10am. +971-9-4662020"
+    for match in phonenumbers.PhoneNumberMatcher(text, "US"):
+        print match
+
+    # text = "PHONE: +971-9-4662020"
+    # for match in phonenumbers.PhoneNumberMatcher(text, None, leniency=Leniency.VALID):
+    #     print match
+        # print geocoder.description_for_number(match, "en")
+
+
 if __name__ == '__main__':
     desc='regexp extraction'
     parser = argparse.ArgumentParser(
@@ -170,7 +189,7 @@ if __name__ == '__main__':
 
 
     # TEST
-    # print find_phone_numbers( " details for your nearest Emirates office. ")
+    # test()
     # print "done"
 
     # SPARK
