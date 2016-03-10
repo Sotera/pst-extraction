@@ -2,7 +2,7 @@
 
 CURRENT_DIR=$(pwd)
 
-../bin/normalize_mbox.sh
+./bin/normalize_mbox.sh
 ./bin/run_spark_tika.sh
 ./bin/run_tika_content_join.sh
 
