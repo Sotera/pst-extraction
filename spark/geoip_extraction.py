@@ -9,11 +9,20 @@ from operator import attrgetter, itemgetter
 from pyspark import SparkContext, SparkConf
 import geoip2.errors
 
+#
+# This code requires goe mmdb available on the localhost
+# This comes pre-installed with the geo-utils docker image
+#
+# It can be downloaded at:
+# http://geolite.maxmind.com/download/geoip/database/GeoLite2-City.mmdb.gz
+#
+#
+
 def loc(reader, ip):
     try:
         response = reader.city(ip)
         name, lat, lon = attrgetter("city.name", "location.latitude", "location.longitude")(response)
-        rtn = {"name": name, "location" : {"lat": lat, "lon": lon}}
+        rtn = {"city": name, "geo_coord" : {"lat": lat, "lon": lon}}
         return (True, rtn)
     except (ValueError, geoip2.errors.AddressNotFoundError) as e:
         return (False, str(e))

@@ -145,6 +145,16 @@
       "originating_ips" : {
         "type" : "string"
       },
+      "originating_locations": {
+        "properties": {
+          "geo_coord": {
+           "type" : "geo_point"
+          },
+          "city": {
+            "type": "string"
+          }
+        }
+      },
       "references" : {
         "type" : "string"
       },
