@@ -41,6 +41,7 @@ def dump(x):
 #   [0-9]
 # Original
 # phonenum_candidate_regex_str = "[+(]?([0-9][- .()]?){6,12}[0-9]"
+# TODO if updating regex also update the regex in Newman UI es_queries
 phonenum_candidate_regex_str = "([+]?[0-9]?[0-9]?[0-9- .()]{6,15})"
 
 # phonenum_candidate_regex_str = "^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$"

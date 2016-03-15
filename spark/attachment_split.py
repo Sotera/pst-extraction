@@ -24,7 +24,7 @@ def removeAttachments(x):
 def extractAttachments(x):
     message_id = x['id']
     datetime = x['datetime']
-    attachments = map(lambda o: extractKeys(['guid', 'extension', 'filename', 'contents64', 'content_extracted', 'content','locations'], o), x['attachments'])
+    attachments = map(lambda o: extractKeys(['guid', 'extension', 'filename', 'contents64', 'content_extracted', 'content','exif'], o), x['attachments'])
     attachments = [dict(a, **{'id': message_id, 'datetime': datetime }) for a in attachments]
     return attachments
 

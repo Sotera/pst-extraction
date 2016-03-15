@@ -20,6 +20,20 @@
           "email_id" : {
             "type" : "string"
           },
+          "exif": {
+            "properties": {
+              "gps": {
+                "properties": {
+                  "coord": {
+                    "type": "geo_point"
+                  }
+                }
+              },
+              "alt":{
+                "type":"string"
+              }
+            }
+          },
           "extension" : {
             "type" : "string"
           },

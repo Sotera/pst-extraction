@@ -13,6 +13,20 @@
           "content_extracted" : {
             "type" : "boolean"
           },
+          "exif": {
+            "properties": {
+              "gps": {
+                "properties": {
+                  "coord": {
+                    "type": "geo_point"
+                  }
+                }
+              },
+              "alt":{
+                "type":"string"
+              }
+            }
+          },
           "extension" : {
             "type" : "string"
           },
@@ -148,7 +162,7 @@
       "originating_locations": {
         "properties": {
           "geo_coord": {
-           "type" : "geo_point"
+            "type" : "geo_point"
           },
           "city": {
             "type": "string"
