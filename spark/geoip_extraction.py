@@ -6,8 +6,9 @@ import argparse
 import json
 from functools import partial
 from operator import attrgetter, itemgetter
-from pyspark import SparkContext, SparkConf
+from geoip2 import database
 import geoip2.errors
+from pyspark import SparkContext, SparkConf
 
 #
 # This code requires goe mmdb available on the localhost
@@ -23,16 +24,18 @@ def loc(reader, ip):
         response = reader.city(ip)
         name, lat, lon = attrgetter("city.name", "location.latitude", "location.longitude")(response)
         rtn = {"city": name, "geo_coord" : {"lat": lat, "lon": lon}}
+        if not rtn["geo_coord"]["lat"] or not rtn["geo_coord"]["lon"]:
+            return (False, rtn)
         return (True, rtn)
     except (ValueError, geoip2.errors.AddressNotFoundError) as e:
         return (False, str(e))
 
 def assign_ips(accum_count, geodb_path, partition):
-    import geoip2.database            
+    import geoip2.database
     items = []
     reader = None
     try:
-        reader = geoip2.database.Reader(geodb_path)                
+        reader = geoip2.database.Reader(geodb_path)
         for item in partition:
             email_locs = []
             ips = [ip.replace("[","").replace("]","") for ip in item.get("originating_ips", [])]
@@ -56,7 +59,7 @@ if __name__ == "__main__":
         description=desc,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=desc)
-    parser.add_argument("-d", "--geodb", default="etc/GeoLite2-City.mmdb", help="path to ip2geo db")        
+    parser.add_argument("-d", "--geodb", default="etc/GeoLite2-City.mmdb", help="path to ip2geo db")
     parser.add_argument("input_emails_content_path", help="email json")
     parser.add_argument("output_emails_with_ip_assignment", help="output directory for emails with ip geo located")
 
