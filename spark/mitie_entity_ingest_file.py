@@ -67,7 +67,7 @@ def extract_entities(doc_iter, extract_field='body', extracted_lang_field='body_
         #     Now extract entities for any translated fields
             if not lang == 'en':
                 mitie_entities = entities(doc[extracted_translated_field], 'en')
-                doc["entities"] = {extract_field+"_entities_translated" : mitie_entities}
+                doc["entities"][extract_field+"_entities_translated"] = mitie_entities
 
         # TODO do attachments here instead of in a seperate execution of this stage
         yield doc
