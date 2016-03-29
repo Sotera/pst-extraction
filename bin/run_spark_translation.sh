@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 
 set +x
+set -e
+echo "===========================================$0"
 
-if [[ -d "pst-extract/spark-emails-translation" ]]; then
-    rm -rf "pst-extract/spark-emails-translation"
+OUTPUT_DIR=spark-emails-translation
+if [[ -d "pst-extract/$OUTPUT_DIR" ]]; then
+    rm -rf "pst-extract/$OUTPUT_DIR"
 fi
 
-spark-submit --master local[*] --driver-memory 8g --files spark/moses_translator.py --conf spark.storage.memoryFraction=.8 spark/translation.py pst-extract/spark-emails-with-topics pst-extract/spark-emails-translation --force_language en --translation_mode apertium --moses_server localhost:8080
+spark-submit --master local[*] --driver-memory 8g --files spark/moses_translator.py --conf spark.storage.memoryFraction=.8 spark/translation.py pst-extract/spark-emails-with-topics pst-extract/$OUTPUT_DIR --force_language en --translation_mode apertium --moses_server localhost:8080
+
+./bin/validate_lfs.sh $OUTPUT_DIR

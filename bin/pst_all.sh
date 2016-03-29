@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-#Make sure to exit if anything fails
 set -e
 
-./bin/normalize_eml.sh
+./bin/explode_psts.sh
+./bin/normalize_mbox.sh
 
 source ./bin/_newman_pipeline.sh

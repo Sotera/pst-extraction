@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
 set +x
+set -e
+echo "===========================================$0"
 
-if [[ -d "pst-extract/spark-emails-geoip" ]]; then
-    rm -rf "pst-extract/spark-emails-geoip"
+OUTPUT_DIR=spark-emails-geoip
+if [[ -d "pst-extract/$OUTPUT_DIR" ]]; then
+    rm -rf "pst-extract/$OUTPUT_DIR"
 fi
 
-spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 spark/geoip_extraction.py pst-extract/spark-emails-entity pst-extract/spark-emails-geoip --geodb /etc/GeoLite2-City.mmdb
+spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 spark/geoip_extraction.py pst-extract/spark-emails-entity pst-extract/$OUTPUT_DIR --geodb /etc/GeoLite2-City.mmdb
+
+./bin/validate_lfs.sh $OUTPUT_DIR
+

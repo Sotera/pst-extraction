@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 
 set +x
+set -e
 
-if [[ -d "pst-extract/spark-emails-attach-exif" ]]; then
-    rm -rf "pst-extract/spark-emails-attach-exif"
+echo "===========================================$0"
+
+OUTPUT_DIR=spark-emails-attach-exif
+if [[ -d "pst-extract/$OUTPUT_DIR" ]]; then
+    rm -rf "pst-extract/$OUTPUT_DIR"
 fi
 
-spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 spark/image_exif_processing.py pst-extract/spark-emails-with-phone pst-extract/spark-emails-attach-exif
+spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 spark/image_exif_processing.py pst-extract/spark-emails-with-phone pst-extract/$OUTPUT_DIR
+
+./bin/validate_lfs.sh $OUTPUT_DIR

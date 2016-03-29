@@ -1,0 +1,21 @@
+{
+  "settings":{
+    "index": { "mapping.allow_type_wrapper": true  },
+
+    "analysis" : {
+      "char_filter" : {
+        "domain_pattern":{
+          "type":"pattern_replace",
+          "pattern":".*@",
+          "replacement":""
+        }
+      },
+      "analyzer" : {
+        "domain_analyzer" : {
+          "tokenizer" : "standard",
+          "char_filter" : ["domain_pattern"]
+        }
+      }
+    }
+  }
+}
