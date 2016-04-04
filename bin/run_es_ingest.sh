@@ -9,7 +9,9 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
-source $1
+source $2
+
+ES_INDEX=$1
 
 printf "create doc_type for <${ES_INDEX}> \n"
 
