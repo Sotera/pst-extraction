@@ -4,4 +4,4 @@ set -e
 
 ./bin/normalize_mbox.sh
 
-source ./bin/_newman_pipeline.sh
+source ./bin/_newman_pipeline.sh "$@"

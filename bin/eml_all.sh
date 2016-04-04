@@ -5,4 +5,4 @@ set -e
 
 ./bin/normalize_eml.sh
 
-source ./bin/_newman_pipeline.sh
+source ./bin/_newman_pipeline.sh "$@"
