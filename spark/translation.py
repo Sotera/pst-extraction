@@ -23,6 +23,9 @@ def language(text, override_language=None):
     except LangDetectException:
         return 'en'
 
+def translate_apertium_pipe(text, from_lang, to_lang='en'):
+    return text
+
 def translate_apertium(text, from_lang, to_lang='en'):
     if not text.strip():
         return ""
@@ -32,7 +35,7 @@ def translate_apertium(text, from_lang, to_lang='en'):
     # TODO this is slow
     cmd = ['apertium' , from_lang+'-'+to_lang]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-    out_text, err = p.communicate(text)
+    out_text, err = p.communicate(text.encode("utf-8"))
 
     return out_text if not out_text.startswith("Error: Mode") else text
 
@@ -48,10 +51,11 @@ def translate(text, moses, from_lang, to_lang='en'):
 
 def process_email(email, force_language, translation_mode, moses):
     # default to en
+
     lang = 'en'
 
     if "body" in email:
-        lang = language(email["body"])
+        lang = language(email["body"], force_language)
         if not lang == 'en':
             translated = translate(email["body"], moses, lang, 'en')
             email["body_lang"]= lang
@@ -59,7 +63,7 @@ def process_email(email, force_language, translation_mode, moses):
 
     if "subject" in email:
         # TODO  -- fix this for now use body lang for subject because library seems to miscalculate it because of RE: FW: characters etc
-        # lang = language(email["subject"])
+        # lang = language(email["subject"], force_language)
         if not lang == 'en':
             translated = translate(email["subject"], moses, lang, 'en')
             email["subject_lang"] = lang
@@ -67,7 +71,7 @@ def process_email(email, force_language, translation_mode, moses):
 
     for attachment in email["attachments"]:
         if "contents" in attachment:
-            lang = language(attachment["contents"])
+            lang = language(attachment["contents"], force_language)
             if not lang == 'en':
                 translated = translate(attachment["contents"], moses, lang, 'en')
                 attachment["contents_lang"] = lang
