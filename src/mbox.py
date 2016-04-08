@@ -9,7 +9,7 @@ import itertools
 import collections
 
 import datetime
-import email_extract_json
+import email_extract_json_unicode
 import mailbox
 import uuid
 import traceback
@@ -60,20 +60,34 @@ examples:
     #parser.add_argument("infile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="Input File")
     args = parser.parse_args()
 
+    lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
     mbox_path = os.path.abspath(args.mbox_path)
     for i, mbox_file in enumerate(mbox_files(mbox_path)):
+        failures = 0
         outfile = "{}/output_part_{:06d}".format(args.out_dir, i)
         print mbox_file
         
         for j, message in enumerate(mailbox.mbox(mbox_file)):
             guid = str(uuid.uuid1())
             try:
-                categories = email_extract_json.categoryList(os.path.split(mbox_file)[0].replace(mbox_path, "", 1))
-                row = email_extract_json.extract(guid, message, categories)
+                categories = email_extract_json_unicode.categoryList(os.path.split(mbox_file)[0].replace(mbox_path, "", 1))
+                row = email_extract_json_unicode.extract(guid, message, categories)
                 spit(outfile, row + "\n")
             except Exception as e:
+                try:
+                    _,name = os.path.split(mbox_file)
+                    _dir = "{}/{}_{}".format("tmp/failed", name, lex_date)
+                    mkdirp(_dir)
+                    spit("{}/{}.eml".format(_dir, guid), str(message))
+                except:
+                    print "Failed to log broken file!  Check dataset for Errors!"
+
                 traceback.print_exc()        
-                print "exception line: {} | {} ".format(j, e.message)
+                failures += 1
+                print "FAILED to process mbox message part.  Exception line: {} | {} ".format(j, e.message)
 
             if j % 100 == 0:
                 prn("completed line: {}".format(j)) 
+
+        print "Completed processing mbox file {}. Total messages={} Failures={}".format(mbox_file, j, failures)
+    print "Completed processing all mbox files.  Check for failures above."

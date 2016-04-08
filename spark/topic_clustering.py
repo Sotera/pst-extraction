@@ -94,7 +94,7 @@ if __name__ == "__main__":
     vocab= [word for count, word in vocab]
     vocabIdx = {k:v for v,k in enumerate(vocab)}
 
-    spit(args.vocab_index, "\n".join(["{}\t{}".format(v,k) for k,v in vocabIdx.iteritems()]))
+    spit(args.vocab_index, u"\n".join([u"{}\t{}".format(v,k) for k,v in vocabIdx.iteritems()]))
     
     broadcastVocabLookup = sc.broadcast(set(vocab))
     broadcastVocabIdx = sc.broadcast(vocabIdx)
