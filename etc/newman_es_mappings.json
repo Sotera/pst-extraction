@@ -37,7 +37,7 @@
               "type": "boolean"
             },
             "content_type": {
-              "type": "boolean"
+              "type": "string"
             },
             "guid": {
               "index": "not_analyzed",
