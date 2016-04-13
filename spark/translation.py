@@ -70,12 +70,12 @@ def process_email(email, force_language, translation_mode, moses):
             email["subject_translated"] = translated
 
     for attachment in email["attachments"]:
-        if "contents" in attachment:
-            lang = language(attachment["contents"], force_language)
+        if "content" in attachment:
+            lang = language(attachment["content"], force_language)
             if not lang == 'en':
-                translated = translate(attachment["contents"], moses, lang, 'en')
-                attachment["contents_lang"] = lang
-                attachment["contents_translated"] = translated
+                translated = translate(attachment["content"], moses, lang, 'en')
+                attachment["content_lang"] = lang
+                attachment["content_translated"] = translated
 
     return email
 

@@ -57,6 +57,8 @@ examples:
     #parser.add_argument("-l", "--limit", type=int, default=0, help="end at line #")
     parser.add_argument("mbox_path", help="mbox file path")
     parser.add_argument("out_dir", help="ouput directory")
+    parser.add_argument("-p", "--preserve_attachments", type=bool, default=False, help="Should inlined attachments be preserved as files or omitted from the results?")
+
     #parser.add_argument("infile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="Input File")
     args = parser.parse_args()
 
@@ -71,7 +73,7 @@ examples:
             guid = str(uuid.uuid1())
             try:
                 categories = email_extract_json_unicode.categoryList(os.path.split(mbox_file)[0].replace(mbox_path, "", 1))
-                row = email_extract_json_unicode.extract(guid, message, categories)
+                row = email_extract_json_unicode.extract(guid, message, categories, preserve_attachments=args.preserve_attachments)
                 spit(outfile, row + "\n")
             except Exception as e:
                 try:

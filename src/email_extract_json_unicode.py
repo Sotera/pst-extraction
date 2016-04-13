@@ -162,6 +162,7 @@ def createRow(email_id, mail, attach, msg_body, categories):
     ##
     def addrs(arr):
         items = []
+        # TODO remove the cleaner!
         arr = [clean_string(convert_encoded(s.lower()),[EXPR_OPTS['fix_utf8'],(r'\t', ';'), (r'\n', ';') ]) for s in arr]
         # arr = [clean_string(s.lower(), [EXPR_OPTS['fix_utf8'], (r'\t', ';'), (r'\n', ';') ]) for s in arr]
         for name, addr in getaddresses(arr):
@@ -286,6 +287,8 @@ def extract(email_id, message, categories, preserve_attachments=True):
         if fileName == 'rtf-body.rtf':
             continue
 
+
+        # TODO remove the cleaner!
         fileName = clean_string(
             fileName,
             [
