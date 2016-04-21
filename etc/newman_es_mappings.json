@@ -36,6 +36,9 @@
             "content_extracted": {
               "type": "boolean"
             },
+            "content_encrypted": {
+              "type": "boolean"
+            },
             "content_type": {
               "type": "string"
             },
@@ -333,6 +336,9 @@
             "content_extracted": {
               "type": "boolean"
             },
+            "content_encrypted": {
+              "type": "boolean"
+            },
             "content_type": {
               "type": "string"
             },
@@ -461,6 +467,9 @@
           "type": "string"
         },
         "content_extracted": {
+          "type": "boolean"
+        },
+        "content_encrypted": {
           "type": "boolean"
         },
         "content_type": {

@@ -148,7 +148,7 @@ def find_phone_numbers(source_txt):
 
 def contains_tel_keyword(sample_str):
     sample_str = sample_str.lower()
-    tel_keyword_list = ['call', 'tel', 'cel', 'mobi', 'landline', 'desk', 'office', 'home', 'work', 'phone', 'fax']
+    tel_keyword_list = ['call', 'tel', 'cel', 'mob', 'line', 'desk', 'office', 'home', 'work', 'phone', 'fax']
 
     # If the sample string contains *any* of the keywords return true
     if any(tel_keyword in sample_str for tel_keyword in tel_keyword_list):
