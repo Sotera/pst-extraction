@@ -95,7 +95,11 @@ public final class TikaExtraction {
                                 .put("content_extracted", Boolean.FALSE)
                                 .build());
             }catch(Exception e){
-                logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s",docMap.get("id"), attachment.get("guid").toString()), e);
+                logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s", docMap.get("id"), attachment.get("guid").toString()), e);
+            }catch(NoSuchMethodError nme){
+//                THis seems to be an error caused by jar mismatch between spark and tika 
+// TODO           Need to look into this more and add shader plugin for the package
+                logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s",docMap.get("id"), attachment.get("guid").toString()), nme);
             }
         }
         return new Tuple2(docMap.get("id").toString(), attachmentsList);
@@ -110,8 +114,8 @@ public final class TikaExtraction {
         JavaRDD<String> emailJSON = ctx.textFile(inputPath);
         JavaRDD<Map> mapRDD = emailJSON.map(
                 s -> readJSON(s)).filter(m -> {
-            List<Map> attachments = ((List<Map>)m.get("attachments"));
-            if (attachments == null || attachments.isEmpty()){
+            List<Map> attachments = ((List<Map>) m.get("attachments"));
+            if (attachments == null || attachments.isEmpty()) {
                 logger.info(String.format("Document contains no attachments: doc=%s", m.get("id")));
                 return false;
             }
