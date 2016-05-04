@@ -25,7 +25,10 @@ def fn_join_contents(x):
     for attach in attach_obj['attachments']:
         success, idx = findIdx(lambda x: x['guid'] == attach['guid'], email_json['attachments'])
         if success:
-            email_json['attachments'][idx]['content'] = attach['content']
+            if 'content' in attach:
+                email_json['attachments'][idx]['content'] = attach['content']
+            if 'content_encrypted' in attach:
+                email_json['attachments'][idx]['content_encrypted'] = attach['content_encrypted']
             email_json['attachments'][idx]['content_extracted'] = attach['content_extracted']
     return json.dumps(email_json)
 

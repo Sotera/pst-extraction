@@ -5,3 +5,4 @@
 pst-extract/
 !pst-extract/.keep
 !pst-extract/README.md
+/spark-java/.idea

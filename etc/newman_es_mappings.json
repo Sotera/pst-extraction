@@ -36,6 +36,12 @@
             "content_extracted": {
               "type": "boolean"
             },
+            "content_encrypted": {
+              "type": "boolean"
+            },
+            "content_type": {
+              "type": "string"
+            },
             "guid": {
               "index": "not_analyzed",
               "type": "string"
@@ -330,6 +336,12 @@
             "content_extracted": {
               "type": "boolean"
             },
+            "content_encrypted": {
+              "type": "boolean"
+            },
+            "content_type": {
+              "type": "string"
+            },
             "guid": {
               "type": "string"
             },
@@ -456,6 +468,12 @@
         },
         "content_extracted": {
           "type": "boolean"
+        },
+        "content_encrypted": {
+          "type": "boolean"
+        },
+        "content_type": {
+          "type": "string"
         },
         "guid": {
           "index": "not_analyzed",

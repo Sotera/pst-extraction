@@ -13,6 +13,9 @@
           "content_extracted" : {
             "type" : "boolean"
           },
+          "content_type" : {
+            "type" : "string"
+          },
           "exif": {
             "properties": {
               "gps": {

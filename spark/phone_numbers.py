@@ -7,6 +7,7 @@ import json
 import phonenumbers # https://github.com/daviddrysdale/python-phonenumbers
 from phonenumbers import geocoder, Leniency
 from phonenumbers import carrier
+from operator import attrgetter, itemgetter
 from pyspark import SparkContext, SparkConf
 
 
@@ -54,7 +55,6 @@ def find_phone_numbers(source_txt):
     tagged_phone_entities = []
 
     for match in re.finditer(phonenum_candidate_regex_str, source_txt, re.MULTILINE):
-
         # Extract the full-text value and the "normalized" value (i.e., digits only)
         value = source_txt[match.start() : match.end()]
         value_normalized = re.sub(u'[^\d]', u'', value)
@@ -102,7 +102,7 @@ def find_phone_numbers(source_txt):
         excerpt_stop = match.end() + EXCERPT_CHAR_BUFFER
         if excerpt_stop > len(source_txt):
             excerpt_stop = len(source_txt)
-        
+
         excerpt = source_txt[excerpt_start:excerpt_stop]
         excerpt_value_start = match.start() - excerpt_start
         excerpt_value_stop = excerpt_stop - match.end()
@@ -148,7 +148,7 @@ def find_phone_numbers(source_txt):
 
 def contains_tel_keyword(sample_str):
     sample_str = sample_str.lower()
-    tel_keyword_list = ['call', 'tel', 'cel', 'mobi', 'landline', 'desk', 'office', 'home', 'work', 'phone', 'fax']
+    tel_keyword_list = ['call', 'tel', 'cel', 'mob', 'line', 'desk', 'office', 'home', 'work', 'phone', 'fax']
 
     # If the sample string contains *any* of the keywords return true
     if any(tel_keyword in sample_str for tel_keyword in tel_keyword_list):
@@ -156,11 +156,18 @@ def contains_tel_keyword(sample_str):
 
     return False
 
-def process_email(email):
-    if "body" in email:
-        phones = find_phone_numbers(email["body"])
-        # TODO extract attachment numbers
-        email["phone_numbers"] = [phone["value_normalized"] for phone in phones]
+def process_email(email, keys=['body']):
+    doc = {}
+    doc['id'] = email['id']
+    email["phone_numbers"] = []
+    for key in keys:
+        try:
+            if key in email:
+                phones = find_phone_numbers(email[key])
+                # TODO extract attachment numbers
+                email["phone_numbers"] += [phone["value_normalized"] for phone in phones]
+        except:
+            print "Failed to process email {}".format(doc['id'])
     return email
 
 def process_patition(emails):

@@ -10,6 +10,6 @@ if [[ -d "pst-extract/$OUTPUT_DIR" ]]; then
     rm -rf "pst-extract/$OUTPUT_DIR"
 fi
 
-spark-submit --master local[*] --driver-memory 8g --jars lib/tika-app-1.10.jar,lib/commons-codec-1.10.jar --conf spark.storage.memoryFraction=.8 --class newman.Driver lib/tika-extract_2.10-1.0.1.jar pst-extract/pst-json/ pst-extract/$OUTPUT_DIR etc/exts.txt
+spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 --class com.soteradefense.newman.TikaExtraction lib/newman-spark-tika-0.1-SNAPSHOT-jar-with-dependencies.jar -i pst-extract/pst-json -o pst-extract/$OUTPUT_DIR
 
 ./bin/validate_lfs.sh $OUTPUT_DIR

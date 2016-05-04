@@ -9,7 +9,7 @@ import itertools
 import collections
 
 import datetime
-import email_extract_json
+import email_extract_json_unicode
 import email
 import uuid
 import traceback
@@ -36,7 +36,7 @@ def skip(iterable, at_start=0, at_end=0):
 count = 0
 def eml_files(dir_):
     global count
-    for root, _, files in os.walk(dir_):
+    for root, _, files in os.walk(dir_, followlinks=False):
         for filename in files:
 #            filename, ext = os.path.splitext(filename)
 #            if ext.replace(".","").lower() == "eml":
@@ -61,23 +61,28 @@ examples:
     parser.add_argument("-l", "--limit", type=int, default=10, help="number of MB to limit output file size too, default 10MB")
     parser.add_argument("eml_root_path", help="root directory of .eml files")
     parser.add_argument("out_dir", help="ouput directory")
+    parser.add_argument("-p", "--preserve_attachments", type=bool, default=False, help="Should inlined attachments be preserved as files or omitted from the results?  These are only the redundant attachments of the original message text, not named attachments.")
+
     #parser.add_argument("infile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="Input File")
     args = parser.parse_args()
     emls_path = os.path.abspath(args.eml_root_path)
 
+    failures = 0
     with RollingFile(args.out_dir, "part", args.limit) as outfile:
     
         for i, eml_file in enumerate(eml_files(emls_path)):
             guid = str(uuid.uuid1())
             try:
-                categories = email_extract_json.categoryList(os.path.split(eml_file)[0].replace(emls_path, "", 1))
+                categories = email_extract_json_unicode.categoryList(os.path.split(eml_file)[0].replace(emls_path, "", 1))
                 message = email.message_from_string(slurp(eml_file))
-                row = email_extract_json.extract(guid, message, categories)
+                row = email_extract_json_unicode.extract(guid, message, categories, preserve_attachments=args.preserve_attachments)
                 outfile.write(row + "\n")
             except Exception as e:
-                traceback.print_exc()        
-                print "exception line: {} | {} ".format(i, e.message)
+                failures += 1
+                traceback.print_exc()
+                print "FAILED to process eml_file {}. Exception line: {} | {} ".format(eml_file, i, e.message)
 
             if i % 1000 == 0:
                 prn("completed line: {}".format(i))
-    print "Total processed: {}".format(count) 
+
+    print "Completed processing eml directories. Total messages={} Failures={}".format(count, failures)
