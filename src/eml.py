@@ -13,6 +13,7 @@ import email_extract_json_unicode
 import email
 import uuid
 import traceback
+import json
 
 sys.path.append("./utils")
 
@@ -63,6 +64,12 @@ examples:
     parser.add_argument("out_dir", help="ouput directory")
     parser.add_argument("-p", "--preserve_attachments", type=bool, default=False, help="Should inlined attachments be preserved as files or omitted from the results?  These are only the redundant attachments of the original message text, not named attachments.")
 
+    parser.add_argument("-i", "--ingest_id", requited=True, help="ingest id, usually the name of the email account, or the ingest process")
+    parser.add_argument("-c", "--case_id", requited=True, help="case id used to track and search accross multiple cases")
+    parser.add_argument("-a", "--alt_ref_id", requited=True, help="an alternate id used to corelate to external datasource")
+    parser.add_argument("-b", "--label", requited=True, help="user defined label for the dateset")
+
+
     #parser.add_argument("infile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="Input File")
     args = parser.parse_args()
     emls_path = os.path.abspath(args.eml_root_path)
@@ -76,7 +83,13 @@ examples:
                 categories = email_extract_json_unicode.categoryList(os.path.split(eml_file)[0].replace(emls_path, "", 1))
                 message = email.message_from_string(slurp(eml_file))
                 row = email_extract_json_unicode.extract(guid, message, categories, preserve_attachments=args.preserve_attachments)
-                outfile.write(row + "\n")
+                row["ingest_id"] = args.ingest_id
+                row["case_id"] = args.case_id
+                row["alt_ref_id"] = args.alt_ref_id
+                row["label"] = args.label
+                row["original_artifact"] = {"filename" : emls_path, "type" : "eml"}
+
+                outfile.write(json.dumps(row) + "\n")
             except Exception as e:
                 failures += 1
                 traceback.print_exc()

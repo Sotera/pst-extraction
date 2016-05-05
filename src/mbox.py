@@ -13,6 +13,7 @@ import email_extract_json_unicode
 import mailbox
 import uuid
 import traceback
+import json
 
 sys.path.append("./utils")
 
@@ -55,9 +56,15 @@ examples:
     #parser.add_argument("-a","--header", action='store_true', help="add header to output")
     #parser.add_argument("-s","--start", type=int, default=0, help="start at line #")
     #parser.add_argument("-l", "--limit", type=int, default=0, help="end at line #")
+
     parser.add_argument("mbox_path", help="mbox file path")
     parser.add_argument("out_dir", help="ouput directory")
     parser.add_argument("-p", "--preserve_attachments", type=bool, default=False, help="Should inlined attachments be preserved as files or omitted from the results?")
+
+    parser.add_argument("-i", "--ingest_id", required=True, help="ingest id, usually the name of the email account, or the ingest process")
+    parser.add_argument("-c", "--case_id", required=True, help="case id used to track and search accross multiple cases")
+    parser.add_argument("-a", "--alt_ref_id", required=True, help="an alternate id used to corelate to external datasource")
+    parser.add_argument("-b", "--label", required=True, help="user defined label for the dateset")
 
     #parser.add_argument("infile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="Input File")
     args = parser.parse_args()
@@ -74,7 +81,13 @@ examples:
             try:
                 categories = email_extract_json_unicode.categoryList(os.path.split(mbox_file)[0].replace(mbox_path, "", 1))
                 row = email_extract_json_unicode.extract(guid, message, categories, preserve_attachments=args.preserve_attachments)
-                spit(outfile, row + "\n")
+                row["ingest_id"] = args.ingest_id
+                row["case_id"] = args.case_id
+                row["alt_ref_id"] = args.alt_ref_id
+                row["label"] = args.label
+                row["original_artifact"] = {"filename" : mbox_file, "type" : "mbox"}
+
+                spit(outfile, json.dumps(row)+ "\n")
             except Exception as e:
                 try:
                     _,name = os.path.split(mbox_file)

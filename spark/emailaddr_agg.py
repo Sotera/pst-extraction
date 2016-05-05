@@ -51,6 +51,7 @@ def email_to_addrs(o):
     j = json.loads(o)
     email_id = j.get('id')
     email_dt = j.get('datetime')
+
     removeContent = partial(rmkey, 'content')
     attachments = [dict(attach, email_id=email_id, datetime=email_dt) for attach in map(removeContent, j.get('attachments', []))]
     sender = one(j.get('senders', []))
@@ -91,6 +92,12 @@ if __name__ == "__main__":
         epilog=desc)
     parser.add_argument("input_path_emails", help="directory with json emails")
     parser.add_argument("output_path_email_address", help="output directory for spark results of json email address ")
+
+    parser.add_argument("-i", "--ingest_id", required=True, help="ingest id, usually the name of the email account, or the ingest process")
+    parser.add_argument("-c", "--case_id", required=True, help="case id used to track and search accross multiple cases")
+    parser.add_argument("-a", "--alt_ref_id", required=True, help="an alternate id used to corelate to external datasource")
+    parser.add_argument("-b", "--label", required=True, help="user defined label for the dateset")
+
     args = parser.parse_args()
 
     conf = SparkConf().setAppName("Newman email address aggregations")
@@ -138,6 +145,11 @@ if __name__ == "__main__":
         o['first_received'] = apply_filter_map(o.get('recepient', []), min, identity, lambda x: x.get('datetime', None))
         o['last_received'] =  apply_filter_map(o.get('recepient', []), max, identity, lambda x: x.get('datetime', None))
         o['last_sent'] = apply_filter_map(o.get('sender', []), max, identity, lambda x: x.get('datetime', None))
+
+        o["ingest_id"] = args.ingest_id
+        o["case_id"] = args.case_id
+        o["alt_ref_id"] = args.alt_ref_id
+        o["label"] = args.label
         return o
     
     rdd_communities_assigned = rdd_addr_to_emails.keyBy(lambda x: x['addr']) \

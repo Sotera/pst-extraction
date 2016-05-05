@@ -5,7 +5,6 @@ import sys, os, argparse
 import re
 import hashlib
 import base64
-import json
 import email
 import uuid
 from email.utils import getaddresses, parsedate_tz
@@ -232,7 +231,7 @@ def createRow(email_id, mail, attach, msg_body, categories):
             "subject": subject,
             "body": body
             }
-    return json.dumps(doc)
+    return doc
 
 #return "\t".join([email_id, _dir, "", #scolon_sep(categories), dateToUTCstr(head(mail_date)) if mail_date else 'NODATE' , '', addr_tostr(senders), '', addr_tostr(tos), addr_tostr(ccs), addr_tostr(bccs), scolon_sep(attach), one(msgid), csv_sep(inreplyto), scolon_sep(references), subject, body])
 
