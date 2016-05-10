@@ -1,8 +1,11 @@
 
 
 *.pyc
-
+*.class
+.idea/
+tmp/
+spark-java/target/
+spark-java/.idea
 pst-extract/
 !pst-extract/.keep
 !pst-extract/README.md
-/spark-java/.idea

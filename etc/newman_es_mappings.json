@@ -1,521 +1,577 @@
 {
-  "settings":{
-    "index": { "mapping.allow_type_wrapper": true  },
-
-    "analysis" : {
-      "char_filter" : {
-        "domain_pattern":{
-          "type":"pattern_replace",
-          "pattern":".*@",
-          "replacement":""
+  "mappings" : {
+    "lda-clustering" : {
+      "properties" : {
+        "idx" : {
+          "type" : "long"
+        },
+        "topic" : {
+          "properties" : {
+            "idx" : {
+              "type" : "long"
+            },
+            "score" : {
+              "type" : "double"
+            },
+            "term" : {
+              "type" : "string"
+            }
+          }
         }
-      },
-      "analyzer" : {
-        "domain_analyzer" : {
-          "tokenizer" : "standard",
-          "char_filter" : ["domain_pattern"]
+      }
+    },
+    "email_address" : {
+      "properties" : {
+        "addr" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "domain" ]
+        },
+        "alt_ref_id" : {
+          "type" : "string"
+        },
+        "attachments_count" : {
+          "type" : "long"
+        },
+        "case_id" : {
+          "type" : "string"
+        },
+        "community" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "community_id" : {
+          "type" : "long"
+        },
+        "domain" : {
+          "type" : "string",
+          "analyzer" : "domain_analyzer"
+        },
+        "first_received" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "first_sent" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "idx" : {
+          "type" : "long"
+        },
+        "ingest_id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "last_received" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "last_sent" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "received_count" : {
+          "type" : "long"
+        },
+        "recepient" : {
+          "type" : "nested",
+          "include_in_parent" : true,
+          "properties" : {
+            "datetime" : {
+              "type" : "date",
+              "format" : "dateOptionalTime"
+            },
+            "email_id" : {
+              "type" : "string"
+            }
+          }
+        },
+        "sender" : {
+          "type" : "nested",
+          "include_in_parent" : true,
+          "properties" : {
+            "datetime" : {
+              "type" : "date",
+              "format" : "dateOptionalTime"
+            },
+            "email_id" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            }
+          }
+        },
+        "sender_attachments" : {
+          "type" : "nested",
+          "include_in_parent" : true,
+          "properties" : {
+            "content_encrypted" : {
+              "type" : "boolean"
+            },
+            "content_extracted" : {
+              "type" : "boolean"
+            },
+            "content_type" : {
+              "type" : "string"
+            },
+            "datetime" : {
+              "type" : "date",
+              "format" : "dateOptionalTime"
+            },
+            "email_id" : {
+              "type" : "string"
+            },
+            "exif" : {
+              "properties" : {
+                "alt" : {
+                  "type" : "string"
+                },
+                "gps" : {
+                  "properties" : {
+                    "alt" : {
+                      "type" : "string"
+                    },
+                    "altref" : {
+                      "type" : "string"
+                    },
+                    "coord" : {
+                      "type" : "geo_point"
+                    },
+                    "latref" : {
+                      "type" : "string"
+                    },
+                    "lonref" : {
+                      "type" : "string"
+                    }
+                  }
+                }
+              }
+            },
+            "extension" : {
+              "type" : "string"
+            },
+            "filename" : {
+              "type" : "string"
+            },
+            "filesize" : {
+              "type" : "long"
+            },
+            "guid" : {
+              "type" : "string"
+            }
+          }
+        },
+        "sent_count" : {
+          "type" : "long"
+        }
+      }
+    },
+    "emails" : {
+      "properties" : {
+        "addrs" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "alt_ref_id" : {
+          "type" : "string"
+        },
+        "attachments" : {
+          "properties" : {
+            "content" : {
+              "type" : "string"
+            },
+            "content_encrypted" : {
+              "type" : "boolean"
+            },
+            "content_extracted" : {
+              "type" : "boolean"
+            },
+            "content_type" : {
+              "type" : "string"
+            },
+            "exif" : {
+              "properties" : {
+                "alt" : {
+                  "type" : "string"
+                },
+                "gps" : {
+                  "properties" : {
+                    "alt" : {
+                      "type" : "string"
+                    },
+                    "altref" : {
+                      "type" : "string"
+                    },
+                    "coord" : {
+                      "type" : "geo_point"
+                    },
+                    "latref" : {
+                      "type" : "string"
+                    },
+                    "lonref" : {
+                      "type" : "string"
+                    }
+                  }
+                }
+              }
+            },
+            "extension" : {
+              "type" : "string"
+            },
+            "filename" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "filesize" : {
+              "type" : "long"
+            },
+            "guid" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            }
+          }
+        },
+        "bccs" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "bccs_line" : {
+          "type" : "string"
+        },
+        "body" : {
+          "type" : "string"
+        },
+        "body_lang" : {
+          "type" : "string"
+        },
+        "body_translated" : {
+          "type" : "string"
+        },
+        "case_id" : {
+          "type" : "string"
+        },
+        "categories" : {
+          "type" : "string"
+        },
+        "ccs" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "ccs_line" : {
+          "type" : "string"
+        },
+        "communities" : {
+          "properties" : {
+            "community" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "community_id" : {
+              "type" : "long"
+            }
+          }
+        },
+        "communities_count" : {
+          "type" : "long"
+        },
+        "datetime" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "entities" : {
+          "properties" : {
+            "body_entities" : {
+              "properties" : {
+                "entity_all" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_full" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_location" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_misc" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_organization" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_person" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                }
+              }
+            },
+            "body_entities_translated" : {
+              "properties" : {
+                "entity_all" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_full" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_location" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_misc" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_organization" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_person" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                }
+              }
+            },
+            "original_lang" : {
+              "type" : "string"
+            }
+          }
+        },
+        "forensic-bcc" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "ingest_id" : {
+          "type" : "string"
+        },
+        "inreplyto" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "messageid" : {
+          "type" : "string"
+        },
+        "original_artifact" : {
+          "properties" : {
+            "filename" : {
+              "type" : "string"
+            },
+            "type" : {
+              "type" : "string"
+            }
+          }
+        },
+        "originating_ips" : {
+          "type" : "string"
+        },
+        "originating_locations" : {
+          "properties" : {
+            "city" : {
+              "type" : "string"
+            },
+            "geo_coord" : {
+              "type" : "geo_point"
+            }
+          }
+        },
+        "phone_numbers" : {
+          "type" : "string"
+        },
+        "references" : {
+          "type" : "string"
+        },
+        "senders" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "senders_line" : {
+          "type" : "string"
+        },
+        "starred" : {
+          "type" : "boolean",
+          "null_value" : false
+        },
+        "subject" : {
+          "type" : "string"
+        },
+        "subject_lang" : {
+          "type" : "string"
+        },
+        "subject_translated" : {
+          "type" : "string"
+        },
+        "topic_scores" : {
+          "properties" : {
+            "idx_0" : {
+              "type" : "double"
+            },
+            "idx_1" : {
+              "type" : "double"
+            },
+            "idx_2" : {
+              "type" : "double"
+            },
+            "idx_3" : {
+              "type" : "double"
+            },
+            "idx_4" : {
+              "type" : "double"
+            },
+            "idx_5" : {
+              "type" : "double"
+            },
+            "idx_6" : {
+              "type" : "double"
+            },
+            "idx_7" : {
+              "type" : "double"
+            },
+            "idx_8" : {
+              "type" : "double"
+            },
+            "idx_9" : {
+              "type" : "double"
+            }
+          }
+        },
+        "tos" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "tos_line" : {
+          "type" : "string"
+        }
+      }
+    },
+    "attachments" : {
+      "properties" : {
+        "alt_ref_id" : {
+          "type" : "string"
+        },
+        "case_id" : {
+          "type" : "string"
+        },
+        "content" : {
+          "type" : "string"
+        },
+        "content_encrypted" : {
+          "type" : "boolean"
+        },
+        "content_extracted" : {
+          "type" : "boolean"
+        },
+        "content_type" : {
+          "type" : "string"
+        },
+        "contents64" : {
+          "type" : "string",
+          "index" : "no"
+        },
+        "datetime" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "exif" : {
+          "properties" : {
+            "alt" : {
+              "type" : "string"
+            },
+            "gps" : {
+              "properties" : {
+                "alt" : {
+                  "type" : "string"
+                },
+                "altref" : {
+                  "type" : "string"
+                },
+                "coord" : {
+                  "type" : "geo_point"
+                },
+                "latref" : {
+                  "type" : "string"
+                },
+                "lonref" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "extension" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "filename" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "guid" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "id" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "ingest_id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "original_artifact" : {
+          "properties" : {
+            "filename" : {
+              "type" : "string"
+            },
+            "type" : {
+              "type" : "string"
+            }
+          }
         }
       }
     }
   },
-  "mappings": {
-    "emails": {
-      "properties": {
-        "body_lang": {
-          "type": "string"
-        },
-        "attachments": {
-          "properties": {
-            "extension": {
-              "type": "string"
-            },
-            "filename": {
-              "index": "not_analyzed",
-              "type": "string"
-            },
-            "content_extracted": {
-              "type": "boolean"
-            },
-            "content_encrypted": {
-              "type": "boolean"
-            },
-            "content_type": {
-              "type": "string"
-            },
-            "guid": {
-              "index": "not_analyzed",
-              "type": "string"
-            },
-            "filesize": {
-              "type": "long"
-            },
-            "content": {
-              "type": "string"
-            },
-            "exif": {
-              "properties": {
-                "alt": {
-                  "type": "string"
-                },
-                "gps": {
-                  "properties": {
-                    "coord": {
-                      "type": "geo_point"
-                    },
-                    "lonref": {
-                      "type": "string"
-                    },
-                    "altref": {
-                      "type": "string"
-                    },
-                    "alt": {
-                      "type": "string"
-                    },
-                    "latref": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
+  "settings" : {
+    "index" : {
+      "mapping" : {
+        "allow_type_wrapper" : "true"
+      },
+      "number_of_shards" : "5",
+      "creation_date" : "1462486510388",
+      "analysis" : {
+        "analyzer" : {
+          "domain_analyzer" : {
+            "char_filter" : [ "domain_pattern" ],
+            "tokenizer" : "standard"
           }
         },
-        "references": {
-          "type": "string"
-        },
-        "subject": {
-          "type": "string"
-        },
-        "messageid": {
-          "type": "string"
-        },
-        "subject_translated": {
-          "type": "string"
-        },
-        "body": {
-          "type": "string"
-        },
-        "ccs": {
-          "copy_to": [
-            "addrs"
-          ],
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "datetime": {
-          "format": "dateOptionalTime",
-          "type": "date"
-        },
-        "starred": {
-          "null_value": false,
-          "type": "boolean"
-        },
-        "body_translated": {
-          "type": "string"
-        },
-        "forensic-bcc": {
-          "type": "string"
-        },
-        "tos": {
-          "copy_to": [
-            "addrs"
-          ],
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "categories": {
-          "type": "string"
-        },
-        "id": {
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "senders": {
-          "copy_to": [
-            "addrs"
-          ],
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "bccs": {
-          "copy_to": [
-            "addrs"
-          ],
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "subject_lang": {
-          "type": "string"
-        },
-        "addrs": {
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "ccs_line": {
-          "type": "string"
-        },
-        "originating_locations": {
-          "properties": {
-            "geo_coord": {
-              "type": "geo_point"
-            },
-            "city": {
-              "type": "string"
-            }
-          }
-        },
-        "senders_line": {
-          "type": "string"
-        },
-        "inreplyto": {
-          "type": "string"
-        },
-        "phone_numbers": {
-          "type": "string"
-        },
-        "entities": {
-          "properties": {
-            "original_lang": {
-              "type": "string"
-            },
-            "body_entities_translated": {
-              "properties": {
-                "entity_location": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                },
-                "entity_full": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                },
-                "entity_organization": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                },
-                "entity_misc": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                },
-                "entity_all": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                },
-                "entity_person": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                }
-              }
-            },
-            "body_entities": {
-              "properties": {
-                "entity_location": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                },
-                "entity_full": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                },
-                "entity_organization": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                },
-                "entity_misc": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                },
-                "entity_all": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                },
-                "entity_person": {
-                  "index": "not_analyzed",
-                  "type": "string"
-                }
-              }
-            }
-          }
-        },
-        "topic_scores": {
-          "properties": {
-            "idx_8": {
-              "type": "double"
-            },
-            "idx_9": {
-              "type": "double"
-            },
-            "idx_6": {
-              "type": "double"
-            },
-            "idx_7": {
-              "type": "double"
-            },
-            "idx_4": {
-              "type": "double"
-            },
-            "idx_5": {
-              "type": "double"
-            },
-            "idx_2": {
-              "type": "double"
-            },
-            "idx_3": {
-              "type": "double"
-            },
-            "idx_0": {
-              "type": "double"
-            },
-            "idx_1": {
-              "type": "double"
-            }
-          }
-        },
-        "bccs_line": {
-          "type": "string"
-        },
-        "communities_count": {
-          "type": "long"
-        },
-        "originating_ips": {
-          "type": "string"
-        },
-        "tos_line": {
-          "type": "string"
-        },
-        "communities": {
-          "properties": {
-            "community_id": {
-              "type": "long"
-            },
-            "community": {
-              "index": "not_analyzed",
-              "type": "string"
-            }
+        "char_filter" : {
+          "domain_pattern" : {
+            "pattern" : ".*@",
+            "type" : "pattern_replace",
+            "replacement" : ""
           }
         }
-      }
-    },
-    "email_address": {
-      "properties": {
-        "last_received": {
-          "format": "dateOptionalTime",
-          "type": "date"
-        },
-        "last_sent": {
-          "format": "dateOptionalTime",
-          "type": "date"
-        },
-        "received_count": {
-          "type": "long"
-        },
-        "community": {
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "first_sent": {
-          "format": "dateOptionalTime",
-          "type": "date"
-        },
-        "sender_attachments": {
-          "include_in_parent": true,
-          "type": "nested",
-          "properties": {
-            "email_id": {
-              "type": "string"
-            },
-            "datetime": {
-              "format": "dateOptionalTime",
-              "type": "date"
-            },
-            "extension": {
-              "type": "string"
-            },
-            "filename": {
-              "type": "string"
-            },
-            "content_extracted": {
-              "type": "boolean"
-            },
-            "content_encrypted": {
-              "type": "boolean"
-            },
-            "content_type": {
-              "type": "string"
-            },
-            "guid": {
-              "type": "string"
-            },
-            "filesize": {
-              "type": "long"
-            },
-            "exif": {
-              "properties": {
-                "alt": {
-                  "type": "string"
-                },
-                "gps": {
-                  "properties": {
-                    "coord": {
-                      "type": "geo_point"
-                    },
-                    "lonref": {
-                      "type": "string"
-                    },
-                    "altref": {
-                      "type": "string"
-                    },
-                    "alt": {
-                      "type": "string"
-                    },
-                    "latref": {
-                      "type": "string"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        "community_id": {
-          "type": "long"
-        },
-        "recepient": {
-          "include_in_parent": true,
-          "type": "nested",
-          "properties": {
-            "email_id": {
-              "type": "string"
-            },
-            "datetime": {
-              "format": "dateOptionalTime",
-              "type": "date"
-            }
-          }
-        },
-        "sender": {
-          "include_in_parent": true,
-          "type": "nested",
-          "properties": {
-            "email_id": {
-              "index": "not_analyzed",
-              "type": "string"
-            },
-            "datetime": {
-              "format": "dateOptionalTime",
-              "type": "date"
-            }
-          }
-        },
-        "domain": {
-          "analyzer": "domain_analyzer",
-          "type": "string"
-        },
-        "attachments_count": {
-          "type": "long"
-        },
-        "addr": {
-          "copy_to": [
-            "domain"
-          ],
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "first_received": {
-          "format": "dateOptionalTime",
-          "type": "date"
-        },
-        "idx": {
-          "type": "long"
-        },
-        "sent_count": {
-          "type": "long"
-        }
-      }
-    },
-    "lda-clustering": {
-      "properties": {
-        "topic": {
-          "properties": {
-            "score": {
-              "type": "double"
-            },
-            "term": {
-              "type": "string"
-            },
-            "idx": {
-              "type": "long"
-            }
-          }
-        },
-        "idx": {
-          "type": "long"
-        }
-      }
-    },
-    "attachments": {
-      "properties": {
-        "datetime": {
-          "format": "dateOptionalTime",
-          "type": "date"
-        },
-        "extension": {
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "filename": {
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "content_extracted": {
-          "type": "boolean"
-        },
-        "content_encrypted": {
-          "type": "boolean"
-        },
-        "content_type": {
-          "type": "string"
-        },
-        "guid": {
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "id": {
-          "index": "not_analyzed",
-          "type": "string"
-        },
-        "contents64": {
-          "index": "no",
-          "type": "string"
-        },
-        "content": {
-          "type": "string"
-        },
-        "exif": {
-          "properties": {
-            "alt": {
-              "type": "string"
-            },
-            "gps": {
-              "properties": {
-                "coord": {
-                  "type": "geo_point"
-                },
-                "lonref": {
-                  "type": "string"
-                },
-                "altref": {
-                  "type": "string"
-                },
-                "alt": {
-                  "type": "string"
-                },
-                "latref": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
+      },
+      "number_of_replicas" : "1",
+      "uuid" : "X2zgKfwKQXOqGNBULgVo8A",
+      "version" : {
+        "created" : "2000099"
       }
     }
   }

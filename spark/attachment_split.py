@@ -16,16 +16,23 @@ def extractKeys(keys, o):
         if k in o:
             rtn[k] = o[k]
     return rtn
-            
+
 def removeAttachments(x):
     x['attachments'] = map(lambda o: rmkey('contents64', o), x['attachments'])
     return x
 
 def extractAttachments(x):
-    message_id = x['id']
-    datetime = x['datetime']
+    parent_fields = {
+        'id' : x['id'],
+        'datetime' : x['datetime'],
+        "ingest_id" : x["ingest_id"],
+        "case_id" : x["case_id"],
+        "alt_ref_id" : x["alt_ref_id"],
+        "label" : x["label"],
+        "original_artifact" : x["original_artifact"]
+    }
     attachments = map(lambda o: extractKeys(['guid', 'extension', 'filename', 'contents64', 'content_extracted', 'content_encrypted', 'content_type', 'content','exif'], o), x['attachments'])
-    attachments = [dict(a, **{'id': message_id, 'datetime': datetime }) for a in attachments]
+    attachments = [dict(a, **parent_fields) for a in attachments]
     return attachments
 
 def dump(x):
@@ -42,7 +49,7 @@ if __name__ == "__main__":
     parser.add_argument("input_emails_content_path", help="joined email extracted content and base64 attachment")
     parser.add_argument("output_path_emails", help="output directory for spark results emails without base64 attachment")
     parser.add_argument("output_path_raw_attachments", help="output directory for spark results attachments ")
-    
+
     args = parser.parse_args()
 
     conf = SparkConf().setAppName("Newman split attachments and emails")
