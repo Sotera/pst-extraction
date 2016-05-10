@@ -14,7 +14,6 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.tika.exception.EncryptedDocumentException;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.language.LanguageIdentifier;
 import org.apache.tika.metadata.Metadata;
@@ -72,7 +71,7 @@ public final class TikaExtraction {
             byte[] bytes = Base64.decodeBase64(base64Contents.toString());
 
             try (InputStream stream = new ByteArrayInputStream(bytes)) {
-                logger.info(String.format("Parsing doc attachment: doc=%s, attachment=%s", docMap.get("id"), attachment.get("guid").toString()));
+                logger.info(String.format("Parsing doc attachment: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""));
                 TikaParser.parse(stream, handler, new Metadata(), new ParseContext());
 
                 String extract = handler.toString();
@@ -86,20 +85,42 @@ public final class TikaExtraction {
                                 .put("content_encrypted", Boolean.FALSE)
                                 .put("content_extracted", Boolean.TRUE)
                                 .build());
-            }catch(EncryptedDocumentException cryptoEx){
-                logger.warn(String.format("Parsing encrypted doc: doc=%s, attachment=%s", docMap.get("id"), attachment.get("guid").toString()));
+            }catch(org.apache.tika.exception.EncryptedDocumentException cryptoEx){
+                logger.warn(String.format("Parsing encrypted doc: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename")?attachment.get("filename").toString(): ""));
                 attachmentsList.add(
                         new ImmutableMap.Builder<String, Object>()
                                 .put("guid", attachment.get("guid").toString())
                                 .put("content_encrypted", Boolean.TRUE)
                                 .put("content_extracted", Boolean.FALSE)
                                 .build());
+            }catch(TikaException tke){
+//              With encrypted pps files tika may throw this with a cause, instead of an EncryptedDocumentException with cause set to the correct exception
+                if(tke.getCause() instanceof org.apache.poi.EncryptedDocumentException){
+                    logger.warn(String.format("Parsing encrypted doc: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename")?attachment.get("filename").toString(): ""), tke);
+                    attachmentsList.add(
+                            new ImmutableMap.Builder<String, Object>()
+                                    .put("guid", attachment.get("guid").toString())
+                                    .put("content_encrypted", Boolean.TRUE)
+                                    .put("content_extracted", Boolean.FALSE)
+                                    .build());
+                }else{
+                    logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""), tke);
+                }
             }catch(Exception e){
-                logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s", docMap.get("id"), attachment.get("guid").toString()), e);
+                logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""), e);
             }catch(NoSuchMethodError nme){
-//                THis seems to be an error caused by jar mismatch between spark and tika 
-// TODO           Need to look into this more and add shader plugin for the package
-                logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s",docMap.get("id"), attachment.get("guid").toString()), nme);
+//              This seems to be an error caused by jar mismatch between spark and tika
+// TODO         Need to look into this more and add shader plugin for the package
+                try{
+                    logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s, filename=%s, MIME=%s",
+                            docMap.get("id"),
+                            attachment.get("guid").toString(),
+                            attachment.get("filename").toString(),
+                            attachment.get("content_type").toString()),
+                            nme);
+                }catch(Exception e){
+                    logger.error(String.format("LOGGING FAILED:  Failure during exception -- doc missing required field! doc=%s",docMap.get("id")));
+                }
             }
         }
         return new Tuple2(docMap.get("id").toString(), attachmentsList);
