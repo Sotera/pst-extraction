@@ -64,10 +64,10 @@ examples:
     parser.add_argument("out_dir", help="ouput directory")
     parser.add_argument("-p", "--preserve_attachments", type=bool, default=False, help="Should inlined attachments be preserved as files or omitted from the results?  These are only the redundant attachments of the original message text, not named attachments.")
 
-    parser.add_argument("-i", "--ingest_id", requited=True, help="ingest id, usually the name of the email account, or the ingest process")
-    parser.add_argument("-c", "--case_id", requited=True, help="case id used to track and search accross multiple cases")
-    parser.add_argument("-a", "--alt_ref_id", requited=True, help="an alternate id used to corelate to external datasource")
-    parser.add_argument("-b", "--label", requited=True, help="user defined label for the dateset")
+    parser.add_argument("-i", "--ingest_id", required=True, help="ingest id, usually the name of the email account, or the ingest process")
+    parser.add_argument("-c", "--case_id", required=True, help="case id used to track and search accross multiple cases")
+    parser.add_argument("-a", "--alt_ref_id", required=True, help="an alternate id used to corelate to external datasource")
+    parser.add_argument("-b", "--label", required=True, help="user defined label for the dateset")
 
 
     #parser.add_argument("infile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="Input File")
@@ -87,7 +87,7 @@ examples:
                 row["case_id"] = args.case_id
                 row["alt_ref_id"] = args.alt_ref_id
                 row["label"] = args.label
-                row["original_artifact"] = {"filename" : emls_path, "type" : "eml"}
+                row["original_artifact"] = {"filename" : eml_file, "type" : "eml"}
 
                 outfile.write(json.dumps(row) + "\n")
             except Exception as e:
