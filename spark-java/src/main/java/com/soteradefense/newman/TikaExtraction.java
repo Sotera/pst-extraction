@@ -75,6 +75,9 @@ public final class TikaExtraction {
                 TikaParser.parse(stream, handler, new Metadata(), new ParseContext());
 
                 String extract = handler.toString();
+                if(extract.trim().isEmpty())
+                    logger.info(String.format("Nothing extracted from attachment: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""));
+
                 LanguageIdentifier langIdentifier = new LanguageIdentifier(extract);
 
                 attachmentsList.add(
