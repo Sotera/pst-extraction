@@ -9,9 +9,12 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
-source $2
+source $5
 
 ES_INDEX=$1
+CASE_ID=$2
+ALTERNATE_ID=$3
+LABEL=$4
 
 printf "create doc_type for <${ES_INDEX}> \n"
 
@@ -29,8 +32,12 @@ fi
 
 printf "Successfully created index mappings for <${ES_INDEX}> \n"
 
+printf "ES ingest init\n"
+./src/init_es_index.py ${ES_INDEX} --es_nodes ${ES_NODES} --ingest_id ${ES_INDEX} --case_id ${CASE_ID} --alt_ref_id ${ALTERNATE_ID} --label ${LABEL}
+
 printf "ES ingest lda clusters\n"
 ./src/upload_lda_clusters.py ${ES_INDEX} --es_nodes ${ES_NODES}
+
 
 printf "====================ES ingest documents=========================\n"
 printf "ES ingest email addresses\n"
