@@ -6,7 +6,7 @@ ALTERNATE_ID=$3
 LABEL=$4
 FORCE_LANGUGE=$5
 
-NEWMAN_RESEARCH_OCR_HOME=/srv/software/newman-research/docker_opencv_spark_ocr/spark-newman-extraction
+NEWMAN_RESEARCH_OCR_HOME=/srv/software/newman-research-master/docker_opencv_spark_ocr
 
 #Autodetect terminal setting which is needed to launch docker as a scripted subprocess from tangelo
 DOCKER_RUN_MODE=-it
@@ -28,8 +28,11 @@ CURRENT_DIR=$(pwd)
 #Added for spam filter and ocr processing:
 #-------------------
 #./bin/run_spam_filter.sh
-docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ -v $NEWMAN_RESEARCH_OCR_HOME:/srv/software/pst-extraction/ocr ocr ./bin/run_ocr_processing.sh
 #-------------------
+
+docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ -v $NEWMAN_RESEARCH_OCR_HOME/spark-newman-extraction:/srv/software/pst-extraction/ocr ocr ./bin/run_ocr_processing.sh
+docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ -v $NEWMAN_RESEARCH_OCR_HOME/spark-newman-human-receipt-detection:/srv/software/pst-extraction/image-detection ocr ./bin/run_human_receipt_detection_harness.sh
+
 
 #Merge step which will add the tika content and the image_analytics back to the original doc
 ./bin/run_binary_extraction_merge.sh
