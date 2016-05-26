@@ -28,7 +28,10 @@ def fn_join_contents(x):
             if 'content' in attach:
                 email_json['attachments'][idx]['content'] = attach['content']
             if 'image_analytics' in attach:
-                email_json['attachments'][idx]['image_analytics'] = attach['image_analytics']
+                if 'image_analytics' in email_json['attachments'][idx]:
+                    email_json['attachments'][idx]['image_analytics'].update(attach['image_analytics'])
+                else:
+                    email_json['attachments'][idx]['image_analytics'] = attach['image_analytics']
             if 'content_encrypted' in attach:
                 email_json['attachments'][idx]['content_encrypted'] = attach['content_encrypted']
             if 'content_extracted' in attach:
