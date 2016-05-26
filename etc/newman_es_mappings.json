@@ -124,8 +124,14 @@
             },
             "image_analytics": {
               "properties": {
+                "human_detected": {
+                  "type": "boolean"
+                },
                 "ocr_output": {
                   "type": "string"
+                },
+                "receipt_detected": {
+                  "type": "boolean"
                 }
               }
             },
@@ -501,8 +507,14 @@
         },
         "image_analytics": {
           "properties": {
+            "human_detected": {
+              "type": "boolean"
+            },
             "ocr_output": {
               "type": "string"
+            },
+            "receipt_detected": {
+              "type": "boolean"
             }
           }
         },
