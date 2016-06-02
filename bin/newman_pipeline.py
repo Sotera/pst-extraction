@@ -13,7 +13,7 @@ newman_process_destination = "/srv/software/pst-extraction-master/pst-extract"
 
 parser = optparse.OptionParser()
 parser.add_option('-f',
-                  help="Configuration file to run the Newman Pipeline against.  Must be a CSV file with the fields: filename,newman-filename,case_id,alternate_reference_label,label,language",
+                  help="Configuration file to run the Newman Pipeline against.  Must be a CSV file with the fields: filename,newman-filename,case_id,alternate_reference_label,label,language,type (pst, mbox)",
                   default=None,
                   dest="newman_csv_file")
 parser.add_option('-d',
@@ -63,15 +63,8 @@ else:
     print("data file read in.  Ready for processing")
 
 
-pst_match = re.compile(".pst")
-mbox_match = re.compile(".mbox")
-
-
 for key, value in data.items():
     if options.debug is True:
-        pst_match.match(str(key))
-        mbox_match.match(str(key))
-
         print("key (filename) is:  " + str(key))
         print("\tpipeline name:  " + str(value[0]))
         print("\tcase_id is:  " + str(value[1]))
@@ -90,13 +83,15 @@ for key, value in data.items():
         os.mkdir(newman_process_destination + "/mbox")
 
         run_command = str(value[0]) + " " + str(value[1]) + " " + str(value[2]) + " " + str(value[3]) + " " + str(value[4])
-        if pst_match.search(str(key)):
+        if str(value[5]) == "pst":
             cp_command = ["cp -R " + str(key) + " " + newman_process_destination + "/pst/"]
             exitcode = subprocess.call(cp_command, shell=True)
             exitcode = subprocess.call(["./bin/pst_all.sh " + run_command.lower()], shell=True)
-        if mbox_match.search(str(key)):
+        elif str(value[5]) == "mbox":
             cp_command = ["cp -R " + str(key) + " " + newman_process_destination + "/mbox/"]
             exitcode = subprocess.call(cp_command, shell=True)
             exitcode = subprocess.call(["./bin/mbox_all.sh " + run_command.lower()], shell=True)
+        else:
+            sys.exit("Error:  No type given, must provide pst or mbox.  Use -h to see help")
 
 print("done.")
