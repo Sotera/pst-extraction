@@ -64,17 +64,34 @@ else:
 
 
 for key, value in data.items():
+    filename = str(key)
+    pipeline_name = str(value[0])
+    case_id = str(value[1])
+    reference_label = str(value[2])
+    label = str(value[3])
+    language = str(value[4])
+    mbox_type = str(value[5])
+
+    split_filename = filename.split('/')
+
+
+    if mbox_type is "mbox":
+        if filename.find('.mbox') == -1:
+            dest_filename = split_filename[-1] + ".mbox"
+        else:
+            dest_filename = split_filename[-1]
+    else:
+        dest_filename = split_filename[-1]
+
     if options.debug is True:
-        print("key (filename) is:  " + str(key))
-        print("\tpipeline name:  " + str(value[0]))
-        print("\tcase_id is:  " + str(value[1]))
-        print("\talternate_reference_label is:  " + str(value[2]))
-        print("\tlabel is:  " + str(value[3]))
-        print("\tlanguage is:  " + str(value[4]))
-        if pst_match.search(str(key)):
-            print("\tmailbox type is identified as:  pst")
-        if mbox_match.search(str(key)):
-            print("\tmailbox type is identified as:  mbox")
+        print("key (filename) is:  " + filename)
+        print("\tpipeline name:  " + pipeline_name)
+        print("\tcase_id is:  " + case_id)
+        print("\treference_label is:  " + reference_label)
+        print("\tlabel is:  " + label)
+        print("\tlanguage is:  " + language)
+        print("\tmailbox type is:  " + mbox_type)
+        print("\tdest_filename is:  " + dest_filename)
 
     # clean up from any possible previous run
     if options.test_mode is False:
@@ -82,13 +99,13 @@ for key, value in data.items():
         os.mkdir(newman_process_destination + "/pst")
         os.mkdir(newman_process_destination + "/mbox")
 
-        run_command = str(value[0]) + " " + str(value[1]) + " " + str(value[2]) + " " + str(value[3]) + " " + str(value[4])
-        if str(value[5]) == "pst":
-            cp_command = ["cp -R " + str(key) + " " + newman_process_destination + "/pst/"]
+        run_command = pipeline_name + " " + case_id + " " + reference_label + " " + label + " " + language
+        if mbox_type == "pst":
+            cp_command = ["cp -R " + str(key) + " " + newman_process_destination + "/pst/" + dest_filename]
             exitcode = subprocess.call(cp_command, shell=True)
             exitcode = subprocess.call(["./bin/pst_all.sh " + run_command.lower()], shell=True)
-        elif str(value[5]) == "mbox":
-            cp_command = ["cp -R " + str(key) + " " + newman_process_destination + "/mbox/"]
+        elif mbox_type == "mbox":
+            cp_command = ["cp -R " + str(key) + " " + newman_process_destination + "/mbox/" + dest_filename]
             exitcode = subprocess.call(cp_command, shell=True)
             exitcode = subprocess.call(["./bin/mbox_all.sh " + run_command.lower()], shell=True)
         else:
