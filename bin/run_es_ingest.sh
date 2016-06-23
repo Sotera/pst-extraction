@@ -45,5 +45,5 @@ spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoo
 printf "ES ingest attachments\n"
 spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.2.0-m1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-attachments/part-*" "${ES_INDEX}/${ES_DOC_TYPE_ATTACHMENTS}" --id_field guid  --es_nodes ${ES_NODES}
 printf "ES ingest emails\n"
-spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.2.0-m1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-geoip/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}" --id_field id  --es_nodes ${ES_NODES}
+spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.2.0-m1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-transaction/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}" --id_field id  --es_nodes ${ES_NODES}
 

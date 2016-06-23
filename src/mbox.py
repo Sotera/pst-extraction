@@ -72,7 +72,7 @@ examples:
     lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
     mbox_path = os.path.abspath(args.mbox_path)
     for i, mbox_file in enumerate(mbox_files(mbox_path)):
-        failures = 0
+        count_failures = 0
         outfile = "{}/output_part_{:06d}".format(args.out_dir, i)
         print mbox_file
         
@@ -98,11 +98,11 @@ examples:
                     print "Failed to log broken file!  Check dataset for Errors!"
 
                 traceback.print_exc()        
-                failures += 1
+                count_failures += 1
                 print "FAILED to process mbox message part.  Exception line: {} | {} ".format(j, e.message)
 
             if j % 100 == 0:
                 prn("completed line: {}".format(j)) 
 
-        print "Completed processing mbox file {}. Total messages={} Failures={}".format(mbox_file, j, failures)
+        print "Completed processing mbox file {}. Total messages={} Failures={}".format(mbox_file, j, count_failures)
     print "Completed processing all mbox files.  Check for failures above."

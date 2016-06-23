@@ -31,7 +31,7 @@ def extractAttachments(x):
         "label" : x["label"],
         "original_artifact" : x["original_artifact"]
     }
-    attachments = map(lambda o: extractKeys(['guid', 'extension', 'filename', 'contents64', 'content_extracted', 'content_encrypted', 'content_type', 'content', 'exif', 'image_analytics'], o), x['attachments'])
+    attachments = map(lambda o: extractKeys(['guid', 'extension', 'filename', 'contents64', 'content_extracted', 'content_encrypted', 'content_type', 'content', 'exif', 'image_analytics', 'metadata'], o), x['attachments'])
     attachments = [dict(a, **parent_fields) for a in attachments]
     return attachments
 

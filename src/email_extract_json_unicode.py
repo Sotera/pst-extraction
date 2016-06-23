@@ -148,6 +148,22 @@ def convert_encoded(text):
     except:
         return text
 
+    ##
+## return tuple (extracted emails array, unprocessed parts as array)
+##
+def addrs(arr):
+    items = []
+    # TODO remove the cleaner!
+    arr = [clean_string(convert_encoded(s.lower()),[EXPR_OPTS['fix_utf8'],(r'\t', ';'), (r'\n', ';') ]) for s in arr]
+    # arr = [clean_string(s.lower(), [EXPR_OPTS['fix_utf8'], (r'\t', ';'), (r'\n', ';') ]) for s in arr]
+    for name, addr in getaddresses(arr):
+        if '@' in addr:
+            items.append(addr)
+        elif '@' in name:
+            items.append(name)
+    return  ([clean_string(s.lower(), [(r'\'', '')]) for s in items], arr)
+
+
 def createRow(email_id, mail, attach, msg_body, categories):
     #addr_tostr = lambda arr : ";".join(arr)
     #addrs = lambda arr : [clean_string(addr.lower(), [(r'\'', '')]) for
@@ -156,20 +172,6 @@ def createRow(email_id, mail, attach, msg_body, categories):
     #csv_sep = lambda arr : ",".join(arr) if arr else ''
     #scolon_sep = lambda arr : ";".join(arr) if arr else '' 
 
-    ##
-    ## return tuple (extracted emails array, unprocessed parts as array)
-    ##
-    def addrs(arr):
-        items = []
-        # TODO remove the cleaner!
-        arr = [clean_string(convert_encoded(s.lower()),[EXPR_OPTS['fix_utf8'],(r'\t', ';'), (r'\n', ';') ]) for s in arr]
-        # arr = [clean_string(s.lower(), [EXPR_OPTS['fix_utf8'], (r'\t', ';'), (r'\n', ';') ]) for s in arr]
-        for name, addr in getaddresses(arr):
-            if '@' in addr:
-                items.append(addr)
-            elif '@' in name:
-                items.append(name)
-        return  ([clean_string(s.lower(), [(r'\'', '')]) for s in items], arr)
 
 
     one = lambda arr : head(arr) if arr else ''
