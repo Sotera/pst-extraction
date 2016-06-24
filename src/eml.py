@@ -42,7 +42,7 @@ def eml_files(dir_):
 #            filename, ext = os.path.splitext(filename)
 #            if ext.replace(".","").lower() == "eml":
             if filename.endswith("_mime.txt") or filename.endswith(".eml"):
-                count+=1
+                count_total+=1
                 print "Processing message: %s"%str(filename)
                 yield os.path.abspath("{}/{}".format(root, filename))
             else:
