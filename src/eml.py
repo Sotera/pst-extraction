@@ -74,7 +74,6 @@ examples:
     args = parser.parse_args()
     emls_path = os.path.abspath(args.eml_root_path)
 
-    # madinas = 0
     count_failures = 0
     with RollingFile(args.out_dir, "part", args.limit) as outfile:
     
@@ -89,10 +88,7 @@ examples:
                 row["alt_ref_id"] = args.alt_ref_id
                 row["label"] = args.label
                 row["original_artifact"] = {"filename" : eml_file, "type" : "eml"}
-                # if "madina99@hotmail.com" in row["senders"] or "madina99@hotmail.com" in row["tos"] or "madina99@hotmail.com" in row["ccs"] or "madina99@hotmail.com" in row["bccs"]:
-                #     print "OUTPUT: 1 medina99"
                 outfile.write(json.dumps(row) + "\n")
-                # madinas+=1
             except Exception as e:
                 count_failures += 1
                 traceback.print_exc()
@@ -101,5 +97,4 @@ examples:
             if i % 1000 == 0:
                 prn("completed line: {}".format(i))
 
-    # print "MEDINA TOT"+str(madinas)
     print "Completed processing eml directories. Total messages={} Failures={}".format(count_total, count_failures)
