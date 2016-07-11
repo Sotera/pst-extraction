@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -36,9 +37,16 @@ public final class TikaExtraction {
     private final static transient AutoDetectParser TikaParser = new AutoDetectParser();
     private final static transient Gson Gson = new GsonBuilder().create();
 
+
     public static final Map readJSON(String json){
         Type type = new TypeToken<Map<String, Object>>(){}.getType();
-        return Gson.fromJson(json, type);
+        try{
+            Map doc = Gson.fromJson(json, type);
+            return doc;
+        }catch(JsonSyntaxException jse){
+            logger.error(String.format("Failed to read valid email object."), jse);
+        }
+        return Collections.EMPTY_MAP;
     }
 
     public static final String writeJSON(Object attachments) throws IOException{
@@ -48,6 +56,16 @@ public final class TikaExtraction {
             writer.flush();
             return byteBuffer.toString();
         }
+    }
+
+    public static Map copyMetadata(Metadata metadata){
+        if (metadata == null)
+            return Collections.EMPTY_MAP;
+        ImmutableMap.Builder metaBuilder = new ImmutableMap.Builder<String,Object>();
+        for (String name : metadata.names()){
+            metaBuilder .put(name, metadata.get(name));
+        }
+        return metaBuilder.build();
     }
 
     /**
@@ -69,10 +87,11 @@ public final class TikaExtraction {
 //          Disable read limit which results in exception:  WriteOutContentHandler.WriteLimitReachedException
             BodyContentHandler handler = new BodyContentHandler(-1);
             byte[] bytes = Base64.decodeBase64(base64Contents.toString());
+            Metadata metadata = new Metadata();
 
-            try (InputStream stream = new ByteArrayInputStream(bytes)) {
+            try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
                 logger.info(String.format("Parsing doc attachment: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""));
-                TikaParser.parse(stream, handler, new Metadata(), new ParseContext());
+                TikaParser.parse(stream, handler, metadata, new ParseContext());
 
                 String extract = handler.toString();
                 if(extract.trim().isEmpty())
@@ -84,17 +103,21 @@ public final class TikaExtraction {
                         new ImmutableMap.Builder<String, Object>()
                                 .put("guid", attachment.get("guid").toString())
                                 .put("content", extract)
+                                .put("content_length", extract.length())
                                 .put("content_tika_langid", langIdentifier.isReasonablyCertain() ? langIdentifier.getLanguage() : "UNKNOWN")
                                 .put("content_encrypted", Boolean.FALSE)
                                 .put("content_extracted", Boolean.TRUE)
+                                .put("metadata", TikaExtraction.copyMetadata(metadata))
                                 .build());
             }catch(org.apache.tika.exception.EncryptedDocumentException cryptoEx){
                 logger.warn(String.format("Parsing encrypted doc: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename")?attachment.get("filename").toString(): ""));
                 attachmentsList.add(
                         new ImmutableMap.Builder<String, Object>()
                                 .put("guid", attachment.get("guid").toString())
+                                .put("content_length", 0)
                                 .put("content_encrypted", Boolean.TRUE)
                                 .put("content_extracted", Boolean.FALSE)
+                                .put("metadata", TikaExtraction.copyMetadata(metadata))
                                 .build());
             }catch(TikaException tke){
 //              With encrypted pps files tika may throw this with a cause, instead of an EncryptedDocumentException with cause set to the correct exception
@@ -103,8 +126,10 @@ public final class TikaExtraction {
                     attachmentsList.add(
                             new ImmutableMap.Builder<String, Object>()
                                     .put("guid", attachment.get("guid").toString())
+                                    .put("content_length", 0)
                                     .put("content_encrypted", Boolean.TRUE)
                                     .put("content_extracted", Boolean.FALSE)
+                                    .put("metadata", TikaExtraction.copyMetadata(metadata))
                                     .build());
                 }else{
                     logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""), tke);
