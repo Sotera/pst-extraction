@@ -34,15 +34,15 @@ def skip(iterable, at_start=0, at_end=0):
         queue.append(x)
         yield queue.popleft()
 
-count = 0
+count_total = 0
 def eml_files(dir_):
-    global count
+    global count_total
     for root, _, files in os.walk(dir_, followlinks=False):
         for filename in files:
 #            filename, ext = os.path.splitext(filename)
 #            if ext.replace(".","").lower() == "eml":
             if filename.endswith("_mime.txt") or filename.endswith(".eml"):
-                count+=1
+                count_total+=1
                 print "Processing message: %s"%str(filename)
                 yield os.path.abspath("{}/{}".format(root, filename))
             else:
@@ -74,7 +74,7 @@ examples:
     args = parser.parse_args()
     emls_path = os.path.abspath(args.eml_root_path)
 
-    failures = 0
+    count_failures = 0
     with RollingFile(args.out_dir, "part", args.limit) as outfile:
     
         for i, eml_file in enumerate(eml_files(emls_path)):
@@ -88,14 +88,13 @@ examples:
                 row["alt_ref_id"] = args.alt_ref_id
                 row["label"] = args.label
                 row["original_artifact"] = {"filename" : eml_file, "type" : "eml"}
-
                 outfile.write(json.dumps(row) + "\n")
             except Exception as e:
-                failures += 1
+                count_failures += 1
                 traceback.print_exc()
                 print "FAILED to process eml_file {}. Exception line: {} | {} ".format(eml_file, i, e.message)
 
             if i % 1000 == 0:
                 prn("completed line: {}".format(i))
 
-    print "Completed processing eml directories. Total messages={} Failures={}".format(count, failures)
+    print "Completed processing eml directories. Total messages={} Failures={}".format(count_total, count_failures)

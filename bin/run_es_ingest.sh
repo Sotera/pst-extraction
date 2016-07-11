@@ -9,9 +9,12 @@ if [[ $# -lt 1 ]]; then
     exit 1
 fi
 
-source $2
+source $5
 
 ES_INDEX=$1
+CASE_ID=$2
+ALTERNATE_ID=$3
+LABEL=$4
 
 printf "create doc_type for <${ES_INDEX}> \n"
 
@@ -29,8 +32,12 @@ fi
 
 printf "Successfully created index mappings for <${ES_INDEX}> \n"
 
+printf "ES ingest init\n"
+./src/init_es_index.py ${ES_INDEX} --es_nodes ${ES_NODES} --ingest_id ${ES_INDEX} --case_id ${CASE_ID} --alt_ref_id ${ALTERNATE_ID} --label ${LABEL}
+
 printf "ES ingest lda clusters\n"
 ./src/upload_lda_clusters.py ${ES_INDEX} --es_nodes ${ES_NODES}
+
 
 printf "====================ES ingest documents=========================\n"
 printf "ES ingest email addresses\n"
@@ -38,5 +45,5 @@ spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoo
 printf "ES ingest attachments\n"
 spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.2.0-m1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-attachments/part-*" "${ES_INDEX}/${ES_DOC_TYPE_ATTACHMENTS}" --id_field guid  --es_nodes ${ES_NODES}
 printf "ES ingest emails\n"
-spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.2.0-m1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-geoip/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}" --id_field id  --es_nodes ${ES_NODES}
+spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.2.0-m1.jar --conf spark.storage.memoryFraction=.8 spark/elastic_bulk_ingest.py "pst-extract/spark-emails-transaction/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}" --id_field id  --es_nodes ${ES_NODES}
 

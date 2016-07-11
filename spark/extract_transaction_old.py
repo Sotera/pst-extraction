@@ -127,24 +127,15 @@ def currency(full_text_str):
         found_transaction = contains_transaction_key(match, text)
 
         # TODO should NOT be OR here -- but get it working for now
-        # if found_symbol[0] or found_transaction[0]:
-        #     print "FOUND<=================================================="
-        # if found_symbol[0]:
-        #     print u"<%s> <===CURRECY FOUND===> <%s> "%(value, found_symbol[1].replace(u"\n",u" "))
-        # elif found_transaction[0]:
-        #     print u"<%s> <===TRANS FOUND===> <%s> "%(value, found_transaction[1].replace(u"\n",u" "))
-        # else:
-        #     print u"<%s> <XX=NOT CURRECY=XX> <%s> "%(value, found_transaction[1].replace(u"\n",u" "))
+        if found_symbol[0]:
+            print "<%s> <===CURRECY FOUND===> <%s> "%(value, found_symbol[1].replace("\n"," "))
+        elif found_transaction[0]:
+            print "<%s> <===TRANS FOUND===> <%s> "%(value, found_transaction[1].replace("\n"," "))
+        else:
+            print "<%s> <XX=NOT CURRECY=XX> <%s> "%(value, found_transaction[1].replace("\n"," "))
 
         if found_symbol[0] or found_transaction[0]:
-            c = {}
-            if found_symbol[0]:
-                c["symbol_ex"] = found_symbol[1]
-            if found_transaction[0]:
-                c["trans_ex"] = found_transaction[1]
-            if c:
-                c["value"] = value
-                tagged_currency_entities.append(c)
+            tagged_currency_entities.append({"value" : value, "symbol_ex" : str(found_symbol), "trans_ex" : str(found_transaction)})
 
     return tagged_currency_entities
 
@@ -212,13 +203,13 @@ if __name__ == '__main__':
     # SPARK
     #
     parser.add_argument("input_content_path", help="input email or attachment content path")
-    parser.add_argument("output_content_currency", help="output text body enriched with currency tags and possibly text locations.")
+    # parser.add_argument("output_content_currency", help="output text body enriched with currency tags and possibly text locations.")
+    parser.add_argument("output_csv", help="output attachments to lfs", default="tmp/currency.csv")
 
     args = parser.parse_args()
 
     conf = SparkConf().setAppName("Newman extract currency")
     sc = SparkContext(conf=conf)
 
-    rdd_emails = sc.textFile(args.input_content_path).map(lambda x: json.loads(x))
-    rdd_emails.mapPartitions(process_patition).map(dump).saveAsTextFile(args.output_content_currency)
-
+    rdd_emails = sc.textFile(args.input_content_path).coalesce(50).map(lambda x: json.loads(x))
+    rdd_emails.mapPartitions(lambda docs: process_patition(docs)).coalesce(4).foreachPartition(make_csv)

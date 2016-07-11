@@ -122,6 +122,19 @@
             "email_id" : {
               "type" : "string"
             },
+            "image_analytics": {
+              "properties": {
+                "human_detected": {
+                  "type": "boolean"
+                },
+                "ocr_output": {
+                  "type": "string"
+                },
+                "receipt_detected": {
+                  "type": "boolean"
+                }
+              }
+            },
             "exif" : {
               "properties" : {
                 "alt" : {
@@ -189,6 +202,13 @@
             },
             "content_type" : {
               "type" : "string"
+            },
+            "image_analytics": {
+              "properties": {
+                "ocr_output": {
+                  "type": "string"
+                }
+              }
             },
             "exif" : {
               "properties" : {
@@ -484,6 +504,19 @@
         "datetime" : {
           "type" : "date",
           "format" : "dateOptionalTime"
+        },
+        "image_analytics": {
+          "properties": {
+            "human_detected": {
+              "type": "boolean"
+            },
+            "ocr_output": {
+              "type": "string"
+            },
+            "receipt_detected": {
+              "type": "boolean"
+            }
+          }
         },
         "exif" : {
           "properties" : {

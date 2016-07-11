@@ -91,7 +91,7 @@ if __name__ == "__main__":
                    .sortByKey(False) \
                    .take(2000)
 
-    vocab= [word for count, word in vocab]
+    vocab= [word for count_total, word in vocab]
     vocabIdx = {k:v for v,k in enumerate(vocab)}
 
     spit(args.vocab_index, u"\n".join([u"{}\t{}".format(v,k) for k,v in vocabIdx.iteritems()]))

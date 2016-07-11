@@ -83,7 +83,7 @@ def process_attachment(attachment):
     if attachment:
         attachment["exif"] = {}
         if "contents64" in attachment and "extension" in attachment and (attachment["extension"] == ".jpg" or attachment["extension"] == ".jpeg"):
-
+            gps={}
             try:
                 gps = process_image(attachment["contents64"], attachment["filename"])
                 # TODO fix this

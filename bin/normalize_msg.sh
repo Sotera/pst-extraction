@@ -15,4 +15,4 @@ if [[ -d "pst-extract/pst-json/" ]]; then
 fi
 
 mkdir "pst-extract/pst-json/"
-./src/filecrawl.py pst-extract/doc_files pst-extract/pst-json/ --ingest_id $INGEST_ID --case_id $CASE_ID --alt_ref_id $ALTERNATE_ID --label $LABEL -l 100
+./src/msg.py pst-extract/msgs pst-extract/pst-json/ --ingest_id $INGEST_ID --case_id $CASE_ID --alt_ref_id $ALTERNATE_ID --label $LABEL -l 100
