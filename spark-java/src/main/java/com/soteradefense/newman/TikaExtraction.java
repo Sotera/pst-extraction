@@ -108,6 +108,7 @@ public final class TikaExtraction {
                                 .put("content_encrypted", Boolean.FALSE)
                                 .put("content_extracted", Boolean.TRUE)
                                 .put("metadata", TikaExtraction.copyMetadata(metadata))
+                                .put("size", bytes.length)
                                 .build());
             }catch(org.apache.tika.exception.EncryptedDocumentException cryptoEx){
                 logger.warn(String.format("Parsing encrypted doc: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename")?attachment.get("filename").toString(): ""));
@@ -118,6 +119,7 @@ public final class TikaExtraction {
                                 .put("content_encrypted", Boolean.TRUE)
                                 .put("content_extracted", Boolean.FALSE)
                                 .put("metadata", TikaExtraction.copyMetadata(metadata))
+                                .put("size", bytes.length)
                                 .build());
             }catch(TikaException tke){
 //              With encrypted pps files tika may throw this with a cause, instead of an EncryptedDocumentException with cause set to the correct exception
@@ -130,6 +132,7 @@ public final class TikaExtraction {
                                     .put("content_encrypted", Boolean.TRUE)
                                     .put("content_extracted", Boolean.FALSE)
                                     .put("metadata", TikaExtraction.copyMetadata(metadata))
+                                    .put("size", bytes.length)
                                     .build());
                 }else{
                     logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""), tke);
