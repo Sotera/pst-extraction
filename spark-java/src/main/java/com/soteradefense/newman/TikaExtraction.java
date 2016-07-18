@@ -66,8 +66,8 @@ public final class TikaExtraction {
     }
 //                TODO metadata field contains characters that are illegal in ES fields -- need to go through in detail and extract certain parts based on the doc types
 //                TODO this will be somewhat difficult and time consuming
-    public static Map copyMetadata(Metadata metadata){
-        if (metadata == null)
+    public static Map copyMetadata(Metadata metadata, boolean extractMetadata){
+        if (!extractMetadata || metadata == null)
             return Collections.EMPTY_MAP;
         ImmutableMap.Builder metaBuilder = new ImmutableMap.Builder<String,Object>();
         for (String name : metadata.names()){
@@ -97,7 +97,7 @@ public final class TikaExtraction {
             byte[] bytes = Base64.decodeBase64(base64Contents.toString());
 
 //            Only extract if the param is set to true -- Default = false
-            Metadata metadata = extractMetadata ? new Metadata() : null;
+            Metadata metadata = new Metadata();
 
             try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
                 logger.info(String.format("Parsing doc attachment: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""));
@@ -117,7 +117,7 @@ public final class TikaExtraction {
                                 .put("content_tika_langid", langIdentifier.isReasonablyCertain() ? langIdentifier.getLanguage() : "UNKNOWN")
                                 .put("content_encrypted", Boolean.FALSE)
                                 .put("content_extracted", Boolean.TRUE)
-                                .put("metadata", TikaExtraction.copyMetadata(metadata))
+                                .put("metadata", TikaExtraction.copyMetadata(metadata, extractMetadata))
                                 .put("size", bytes.length)
                                 .build());
             }catch(org.apache.tika.exception.EncryptedDocumentException cryptoEx){
@@ -128,7 +128,7 @@ public final class TikaExtraction {
                                 .put("content_length", 0)
                                 .put("content_encrypted", Boolean.TRUE)
                                 .put("content_extracted", Boolean.FALSE)
-                                .put("metadata", TikaExtraction.copyMetadata(metadata))
+                                .put("metadata", TikaExtraction.copyMetadata(metadata, extractMetadata))
                                 .put("size", bytes.length)
                                 .build());
             }catch(TikaException tke){
@@ -141,7 +141,7 @@ public final class TikaExtraction {
                                     .put("content_length", 0)
                                     .put("content_encrypted", Boolean.TRUE)
                                     .put("content_extracted", Boolean.FALSE)
-                                    .put("metadata", TikaExtraction.copyMetadata(metadata))
+                                    .put("metadata", TikaExtraction.copyMetadata(metadata, extractMetadata))
                                     .put("size", bytes.length)
                                     .build());
                 }else{
