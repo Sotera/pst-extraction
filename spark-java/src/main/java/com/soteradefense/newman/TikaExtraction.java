@@ -58,12 +58,20 @@ public final class TikaExtraction {
         }
     }
 
+    public static String sanitizeFieldNamesForES2(String field){
+        String sanitized = field.replaceAll(".","_").replaceAll(",","_");
+        if (sanitized .startsWith("_") && sanitized .length()>1)
+            sanitized = sanitized .substring(1);
+        return sanitized;
+    }
+//                TODO metadata field contains characters that are illegal in ES fields -- need to go through in detail and extract certain parts based on the doc types
+//                TODO this will be somewhat difficult and time consuming
     public static Map copyMetadata(Metadata metadata){
         if (metadata == null)
             return Collections.EMPTY_MAP;
         ImmutableMap.Builder metaBuilder = new ImmutableMap.Builder<String,Object>();
         for (String name : metadata.names()){
-            metaBuilder .put(name, metadata.get(name));
+            metaBuilder.put(sanitizeFieldNamesForES2(name), metadata.get(name));
         }
         return metaBuilder.build();
     }
@@ -76,7 +84,7 @@ public final class TikaExtraction {
      * @throws SAXException
      * @throws TikaException
      */
-    public static final Tuple2<String, List> extract(Map<String,Object> docMap) throws IOException, SAXException, TikaException {
+    public static final Tuple2<String, List> extract(Map<String,Object> docMap, boolean extractMetadata) throws IOException, SAXException, TikaException {
         List<Map> attachments = ((List<Map>)docMap.get("attachments"));
         List attachmentsList = Lists.newArrayList();
         for(Map attachment : attachments){
@@ -87,7 +95,9 @@ public final class TikaExtraction {
 //          Disable read limit which results in exception:  WriteOutContentHandler.WriteLimitReachedException
             BodyContentHandler handler = new BodyContentHandler(-1);
             byte[] bytes = Base64.decodeBase64(base64Contents.toString());
-            Metadata metadata = new Metadata();
+
+//            Only extract if the param is set to true -- Default = false
+            Metadata metadata = extractMetadata ? new Metadata() : null;
 
             try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
                 logger.info(String.format("Parsing doc attachment: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""));
@@ -157,7 +167,7 @@ public final class TikaExtraction {
         return new Tuple2(docMap.get("id").toString(), attachmentsList);
     }
 
-    public static void sparkDriver(String inputPath, String outputPath){
+    public static void sparkDriver(String inputPath, String outputPath, boolean extractMetadata){
         SparkConf sparkConf = new SparkConf().setAppName("Newman attachment text extract");
 
         JavaSparkContext ctx = new JavaSparkContext(sparkConf);
@@ -173,7 +183,7 @@ public final class TikaExtraction {
             }
             return true;
         });
-        JavaPairRDD<String, List> tuplesRDD = mapRDD.mapToPair(e -> extract(e));
+        JavaPairRDD<String, List> tuplesRDD = mapRDD.mapToPair(e -> extract(e, extractMetadata));
         JavaRDD<String> json = tuplesRDD.map(t -> (t._1() + "\t"+writeJSON(t._2())));
 
         json.saveAsTextFile(outputPath);
@@ -183,6 +193,7 @@ public final class TikaExtraction {
         Options options = new Options();
         options.addOption("i", true, "input file path");
         options.addOption("o", true, "output file path");
+        options.addOption("m", "metadata", false, "add metadata");
 
         CommandLineParser parser = new BasicParser();
 
@@ -190,8 +201,10 @@ public final class TikaExtraction {
             CommandLine cmd = parser.parse(options, args );
             String inputPath = cmd.getOptionValue("i");
             String outputPath = cmd.getOptionValue("o");
+            boolean extractMetadata = Boolean.parseBoolean(cmd.getOptionValue("m"));
+
             TikaExtraction tika = new TikaExtraction();
-            tika.sparkDriver(inputPath, outputPath);
+            tika.sparkDriver(inputPath, outputPath, extractMetadata);
         }
         catch( org.apache.commons.cli.ParseException exp ) {
             System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
