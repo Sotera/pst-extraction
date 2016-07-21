@@ -2,6 +2,10 @@ package com.soteradefense.newman;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -36,7 +40,13 @@ public final class TikaExtraction {
     private final static transient Logger logger = Logger.getLogger(TikaExtraction.class);
     private final static transient AutoDetectParser TikaParser = new AutoDetectParser();
     private final static transient Gson Gson = new GsonBuilder().create();
+    private final static HashFunction murmur3Hash = Hashing.murmur3_128();
 
+    public static String hashBytes(byte[] docBytes){
+        Hasher hasher = murmur3Hash.newHasher();
+        HashCode hash = hasher.putBytes(docBytes).hash();
+        return hash.toString();
+    }
 
     public static final Map readJSON(String json){
         Type type = new TypeToken<Map<String, Object>>(){}.getType();
@@ -96,11 +106,14 @@ public final class TikaExtraction {
             BodyContentHandler handler = new BodyContentHandler(-1);
             byte[] bytes = Base64.decodeBase64(base64Contents.toString());
 
+            final String hash = hashBytes(bytes);
+
 //            Only extract if the param is set to true -- Default = false
             Metadata metadata = new Metadata();
 
             try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
                 logger.info(String.format("Parsing doc attachment: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""));
+
                 TikaParser.parse(stream, handler, metadata, new ParseContext());
 
                 String extract = handler.toString();
@@ -117,6 +130,7 @@ public final class TikaExtraction {
                                 .put("content_tika_langid", langIdentifier.isReasonablyCertain() ? langIdentifier.getLanguage() : "UNKNOWN")
                                 .put("content_encrypted", Boolean.FALSE)
                                 .put("content_extracted", Boolean.TRUE)
+                                .put("content_hash", hash)
                                 .put("metadata", TikaExtraction.copyMetadata(metadata, extractMetadata))
                                 .put("size", bytes.length)
                                 .build());
@@ -128,6 +142,7 @@ public final class TikaExtraction {
                                 .put("content_length", 0)
                                 .put("content_encrypted", Boolean.TRUE)
                                 .put("content_extracted", Boolean.FALSE)
+                                .put("content_hash", hash)
                                 .put("metadata", TikaExtraction.copyMetadata(metadata, extractMetadata))
                                 .put("size", bytes.length)
                                 .build());
@@ -141,6 +156,7 @@ public final class TikaExtraction {
                                     .put("content_length", 0)
                                     .put("content_encrypted", Boolean.TRUE)
                                     .put("content_extracted", Boolean.FALSE)
+                                    .put("content_hash", hash)
                                     .put("metadata", TikaExtraction.copyMetadata(metadata, extractMetadata))
                                     .put("size", bytes.length)
                                     .build());
@@ -209,7 +225,5 @@ public final class TikaExtraction {
         catch( org.apache.commons.cli.ParseException exp ) {
             System.err.println( "Parsing failed.  Reason: " + exp.getMessage() );
         }
-
-
     }
 }
