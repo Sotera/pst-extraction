@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-from pyspark import SparkContext, SparkConf
-
-import sys, os
 import json
 import argparse
 import igraph
+import os
+import datetime
+from filters import valid_json_filter
 from functools import partial
-from operator import itemgetter 
+from pyspark import SparkContext, SparkConf
 
 #utils
 def split_on_condition(seq, condition):
@@ -97,16 +97,22 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--case_id", required=True, help="case id used to track and search accross multiple cases")
     parser.add_argument("-a", "--alt_ref_id", required=True, help="an alternate id used to corelate to external datasource")
     parser.add_argument("-b", "--label", required=True, help="user defined label for the dateset")
+    parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")
 
     args = parser.parse_args()
+
+    lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    print "Running with json filter {}.".format("enabled" if args.validate_json else "disabled")
+    filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
+
 
     conf = SparkConf().setAppName("Newman email address aggregations")
     sc = SparkContext(conf=conf)
     rdd_raw_emails = sc.textFile(args.input_path_emails).cache()
-    rdd_addr_to_emails = rdd_raw_emails.flatMap(email_to_addrs).keyBy(lambda x: x['addr']).groupByKey().map(in_out).cache()
+    rdd_addr_to_emails = rdd_raw_emails.filter(filter_fn).flatMap(email_to_addrs).keyBy(lambda x: x['addr']).groupByKey().map(in_out).cache()
     #rdd_addr_to_emails.saveAsTextFile(args.output_path_email_address)
     
-    rdd_edges = rdd_raw_emails.flatMap(sender_receiver).reduceByKey(lambda a,b: a+b).map(lambda x: (x[0][0], x[0][1], x[1])).cache()
+    rdd_edges = rdd_raw_emails.filter(filter_fn).flatMap(sender_receiver).reduceByKey(lambda a,b: a+b).map(lambda x: (x[0][0], x[0][1], x[1])).cache()
 
     nodes = rdd_edges.flatMap(lambda x: [x[0],x[1]]).distinct().collect()
     node_map = {k: v for v,k in enumerate(nodes)}

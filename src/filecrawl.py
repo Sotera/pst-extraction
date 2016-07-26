@@ -60,12 +60,15 @@ def crawl_files(root_dir, meta):
         for filename in files:
             _, ext = os.path.splitext(filename)
             if ext.replace(".","").lower() in FILE_TYPES_BLACK_LIST:
-                print "Skipping message: %s"%str(filename)
+                print "Skipping file: %s"%str(filename)
             else:
-                count+=1
-                print "Processing message: %s"%str(filename)
+                count_total+=1
+                print "Processing file: %s"%str(filename)
                 abs_path = os.path.abspath("{}/{}".format(root, filename))
                 (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(abs_path)
+                if size > 10000000:
+                    print "Skipping large file: %s, size=%s"%(str(filename),str(size))
+                    continue
                 # filename, ext = os.path.splitext(file)
                 guid = str(uuid.uuid1())
                 rel_path = str(abs_path[(_prefix_length if not abs_path[_prefix_length]=='/' else _prefix_length+1):])

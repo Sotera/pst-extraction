@@ -1,10 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import re
 import locale
 import argparse
 import json
 import csv
-from pyspark import SparkContext, SparkConf
 import uuid
+import os
+import datetime
+from filters import valid_json_filter
+from functools import partial
+from pyspark import SparkContext, SparkConf
 
 
 
@@ -213,12 +220,17 @@ if __name__ == '__main__':
     #
     parser.add_argument("input_content_path", help="input email or attachment content path")
     parser.add_argument("output_content_currency", help="output text body enriched with currency tags and possibly text locations.")
+    parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")
 
     args = parser.parse_args()
+
+    lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    print "INFO: Running with json filter {}.".format("enabled" if args.validate_json else "disabled")
+    filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
 
     conf = SparkConf().setAppName("Newman extract currency")
     sc = SparkContext(conf=conf)
 
-    rdd_emails = sc.textFile(args.input_content_path).map(lambda x: json.loads(x))
+    rdd_emails = sc.textFile(args.input_content_path).filter(filter_fn).map(lambda x: json.loads(x))
     rdd_emails.mapPartitions(process_patition).map(dump).saveAsTextFile(args.output_content_currency)
 

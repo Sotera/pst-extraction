@@ -112,8 +112,16 @@
             "content_extracted" : {
               "type" : "boolean"
             },
+            "content_hash" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "content_length" : {
+              "type" : "long"
+            },
             "content_type" : {
-              "type" : "string"
+              "type" : "string",
+              "index" : "not_analyzed"
             },
             "datetime" : {
               "type" : "date",
@@ -149,7 +157,9 @@
                       "type" : "string"
                     },
                     "coord" : {
-                      "type" : "geo_point"
+                      "type" : "geo_point",
+                      "doc_values": true,
+                      "store": true
                     },
                     "latref" : {
                       "type" : "string"
@@ -200,13 +210,27 @@
             "content_extracted" : {
               "type" : "boolean"
             },
+            "content_hash" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "content_length" : {
+              "type" : "long"
+            },
             "content_type" : {
-              "type" : "string"
+              "type" : "string",
+              "index" : "not_analyzed"
             },
             "image_analytics": {
               "properties": {
+                "human_detected": {
+                  "type": "boolean"
+                },
                 "ocr_output": {
                   "type": "string"
+                },
+                "receipt_detected": {
+                  "type": "boolean"
                 }
               }
             },
@@ -224,7 +248,9 @@
                       "type" : "string"
                     },
                     "coord" : {
-                      "type" : "geo_point"
+                      "type" : "geo_point",
+                      "doc_values": true,
+                      "store": true
                     },
                     "latref" : {
                       "type" : "string"
@@ -300,6 +326,14 @@
         "datetime" : {
           "type" : "date",
           "format" : "dateOptionalTime"
+        },
+        "delivered_to" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "delivered_to_line" : {
+          "type" : "string"
         },
         "entities" : {
           "properties" : {
@@ -383,6 +417,19 @@
         "messageid" : {
           "type" : "string"
         },
+        "numbers" : {
+          "properties" : {
+            "excerpt" : {
+              "type" : "string"
+            },
+            "normalized" : {
+              "type" : "string"
+            },
+            "type" : {
+              "type" : "string"
+            }
+          }
+        },
         "original_artifact" : {
           "properties" : {
             "filename" : {
@@ -402,7 +449,9 @@
               "type" : "string"
             },
             "geo_coord" : {
-              "type" : "geo_point"
+              "type" : "geo_point",
+              "doc_values": true,
+              "store": true
             }
           }
         },
@@ -494,8 +543,16 @@
         "content_extracted" : {
           "type" : "boolean"
         },
+        "content_hash" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "content_length" : {
+          "type" : "long"
+        },
         "content_type" : {
-          "type" : "string"
+          "type" : "string",
+          "index" : "not_analyzed"
         },
         "contents64" : {
           "type" : "string",
@@ -532,7 +589,9 @@
                   "type" : "string"
                 },
                 "coord" : {
-                  "type" : "geo_point"
+                  "type" : "geo_point",
+                  "doc_values": true,
+                  "store": true
                 },
                 "latref" : {
                   "type" : "string"
@@ -584,7 +643,8 @@
       "mapping" : {
         "allow_type_wrapper" : "true"
       },
-      "number_of_shards" : "5",
+      "number_of_shards" : "3",
+      "number_of_replicas" : "0",
       "creation_date" : "1462486510388",
       "analysis" : {
         "analyzer" : {
@@ -600,11 +660,6 @@
             "replacement" : ""
           }
         }
-      },
-      "number_of_replicas" : "1",
-      "uuid" : "X2zgKfwKQXOqGNBULgVo8A",
-      "version" : {
-        "created" : "2000099"
       }
     }
   }

@@ -5,6 +5,10 @@ import cStringIO
 
 import argparse
 import json
+import os
+import datetime
+from filters import valid_json_filter
+from functools import partial
 from pyspark import SparkContext, SparkConf
 
 
@@ -136,11 +140,17 @@ if __name__ == '__main__':
 
     parser.add_argument("input_attachment_content_path", help="input attachments")
     parser.add_argument("output_attachments_gps", help="output attachments enriched with geo / gps tagged images when applicable")
+    parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")
     args = parser.parse_args()
+
+    lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    print "Running with json filter {}.".format("enabled" if args.validate_json else "disabled")
+    filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
+
 
     conf = SparkConf().setAppName("Newman extract jpeg exif ")
     sc = SparkContext(conf=conf)
-    rdd_emails = sc.textFile(args.input_attachment_content_path).map(lambda x: json.loads(x))
+    rdd_emails = sc.textFile(args.input_attachment_content_path).filter(filter_fn).map(lambda x: json.loads(x))
     rdd_emails.map(lambda email : process_email(email)).map(dump).saveAsTextFile(args.output_attachments_gps)
 
     # # TODO need path for handling emails and stand alone attachments
