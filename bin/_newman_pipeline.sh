@@ -37,7 +37,7 @@ docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction
 #Merge step which will add the tika content and the image_analytics back to the original doc
 ./bin/run_binary_extraction_merge.sh
 
-./bin/run_spark_extract_phone.sh
+./bin/run_spark_extract_numbers.sh
 ./bin/run_spark_exif_attachments.sh
 
 #Step to remove the base64 binary attachments from the email doc
@@ -50,7 +50,7 @@ docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction
 ./bin/run_spark_mitie.sh
 docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ geo-utils ./bin/run_spark_geoip.sh
 
-./bin/run_spark_transaction_entity.py
+./bin/run_spark_transaction_entity.sh
 
 ./bin/run_es_ingest.sh $INGEST_ID $CASE_ID $ALTERNATE_ID $LABEL conf/env.cfg
 
