@@ -112,8 +112,16 @@
             "content_extracted" : {
               "type" : "boolean"
             },
+            "content_hash" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "content_length" : {
+              "type" : "long"
+            },
             "content_type" : {
-              "type" : "string"
+              "type" : "string",
+              "index" : "not_analyzed"
             },
             "datetime" : {
               "type" : "date",
@@ -202,13 +210,27 @@
             "content_extracted" : {
               "type" : "boolean"
             },
+            "content_hash" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "content_length" : {
+              "type" : "long"
+            },
             "content_type" : {
-              "type" : "string"
+              "type" : "string",
+              "index" : "not_analyzed"
             },
             "image_analytics": {
               "properties": {
+                "human_detected": {
+                  "type": "boolean"
+                },
                 "ocr_output": {
                   "type": "string"
+                },
+                "receipt_detected": {
+                  "type": "boolean"
                 }
               }
             },
@@ -305,6 +327,14 @@
           "type" : "date",
           "format" : "dateOptionalTime"
         },
+        "delivered_to" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "delivered_to_line" : {
+          "type" : "string"
+        },
         "entities" : {
           "properties" : {
             "body_entities" : {
@@ -386,6 +416,19 @@
         },
         "messageid" : {
           "type" : "string"
+        },
+        "numbers" : {
+          "properties" : {
+            "excerpt" : {
+              "type" : "string"
+            },
+            "normalized" : {
+              "type" : "string"
+            },
+            "type" : {
+              "type" : "string"
+            }
+          }
         },
         "original_artifact" : {
           "properties" : {
@@ -500,8 +543,16 @@
         "content_extracted" : {
           "type" : "boolean"
         },
+        "content_hash" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "content_length" : {
+          "type" : "long"
+        },
         "content_type" : {
-          "type" : "string"
+          "type" : "string",
+          "index" : "not_analyzed"
         },
         "contents64" : {
           "type" : "string",

@@ -19,12 +19,6 @@ def fn_attach_array(filter_fn, x):
     attachments = json.loads(attachs)
     return {'id' : id_, 'attachments': attachments }
 
-def copy_dict(src_dict, dest_dict):
-    for k,v in src_dict.iteritems():
-        if not k in dest_dict:
-            dest_dict[k] = v
-
-
 def fn_join_contents(x, docex_mode=False):
     '''
     add extracted contents to json email (K, (V, U))
@@ -40,7 +34,6 @@ def fn_join_contents(x, docex_mode=False):
         if success:
             dest_attach = email_json['attachments'][idx]
 
-            # TODO test this new code
             dest_attach.update(src_attach)
 
             # In Docex mode copy the content into the body - docex always 1 doc per email
@@ -50,27 +43,6 @@ def fn_join_contents(x, docex_mode=False):
                 if 'image_analytics' in dest_attach and 'ocr_output' in dest_attach['image_analytics']:
                         email_json['body'] = dest_attach['image_analytics']['ocr_output']
 
-            # TODO old code that should be replaced
-            # if 'content' in src_attach:
-            #     email_json['attachments'][idx]['content'] = src_attach['content']
-            #     # If docex - copy the tika content to the email body
-            #     if docex_mode:
-            #         email_json['body'] = src_attach['content']
-            # #  TODO also check the metadata is copied
-            # if 'image_analytics' in src_attach:
-            #     # If docex - copy the ocr extract to the email body
-            #     if docex_mode and "ocr_output" in src_attach["image_analytics"]:
-            #         email_json['body'] = src_attach["image_analytics"]["ocr_output"]
-            #
-            #     if 'image_analytics' in email_json['attachments'][idx]:
-            #         email_json['attachments'][idx]['image_analytics'].update(src_attach['image_analytics'])
-            #     else:
-            #         email_json['attachments'][idx]['image_analytics'] = src_attach['image_analytics']
-            #
-            # if 'content_encrypted' in src_attach:
-            #     email_json['attachments'][idx]['content_encrypted'] = src_attach['content_encrypted']
-            # if 'content_extracted' in src_attach:
-            #     email_json['attachments'][idx]['content_extracted'] = src_attach['content_extracted']
     return json.dumps(email_json)
 
 if __name__ == "__main__":
@@ -97,13 +69,6 @@ if __name__ == "__main__":
 
     conf = SparkConf().setAppName("Newman join attachments content")
     sc = SparkContext(conf=conf)
-
-    # old
-    # rdd_extracted_content = sc.textFile(args.attach_input).map(fn_attach_array).keyBy(lambda x: x['id'])
-    # rdd_emails = sc.textFile(args.input_emails_path).map(lambda x: json.loads(x)).keyBy(lambda x: x['id'])
-    # rdd_joined = rdd_emails.leftOuterJoin(rdd_extracted_content).map(fn_join_contents)
-    # rdd_joined.saveAsTextFile(args.output_path)
-
 
     rdd_emails = sc.textFile(args.input_emails_path).filter(filter_fn).map(lambda x: json.loads(x)).keyBy(lambda x: x['id'])
 
