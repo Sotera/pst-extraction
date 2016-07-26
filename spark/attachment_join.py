@@ -1,9 +1,11 @@
-#!/usr/bin/env python
-from pyspark import SparkContext, SparkConf
-
-import sys, os
+import os
 import json
 import argparse
+import datetime
+from filters import valid_json_filter
+from functools import partial
+from pyspark import SparkContext, SparkConf
+
 
 def findIdx(pred, l):
     for pos, o in enumerate(l):
@@ -11,10 +13,17 @@ def findIdx(pred, l):
             return (True, pos)
     return (False, None)
 
-def fn_attach_array(x):
+def fn_attach_array(filter_fn, x):
     id_, attachs = x.split("\t")
+    filter_fn(attachs)
     attachments = json.loads(attachs)
     return {'id' : id_, 'attachments': attachments }
+
+def copy_dict(src_dict, dest_dict):
+    for k,v in src_dict.iteritems():
+        if not k in dest_dict:
+            dest_dict[k] = v
+
 
 def fn_join_contents(x, docex_mode=False):
     '''
@@ -26,29 +35,42 @@ def fn_join_contents(x, docex_mode=False):
     k, v = x
     email_json, attach_obj = v
     attach_obj = attach_obj if attach_obj else {'id': "", 'attachments': []}
-    for attach in attach_obj['attachments']:
-        success, idx = findIdx(lambda x: x['guid'] == attach['guid'], email_json['attachments'])
+    for src_attach in attach_obj['attachments']:
+        success, idx = findIdx(lambda x: x['guid'] == src_attach['guid'], email_json['attachments'])
         if success:
-            if 'content' in attach:
-                email_json['attachments'][idx]['content'] = attach['content']
-                # If docex - copy the tika content to the email body
-                if docex_mode:
-                    email_json['body'] = attach['content']
-            #  TODO also check the metadata is copied
-            if 'image_analytics' in attach:
-                # If docex - copy the ocr extract to the email body
-                if docex_mode and "ocr_output" in attach["image_analytics"]:
-                    email_json['body'] = attach["image_analytics"]["ocr_output"]
+            dest_attach = email_json['attachments'][idx]
 
-                if 'image_analytics' in email_json['attachments'][idx]:
-                    email_json['attachments'][idx]['image_analytics'].update(attach['image_analytics'])
-                else:
-                    email_json['attachments'][idx]['image_analytics'] = attach['image_analytics']
+            # TODO test this new code
+            dest_attach.update(src_attach)
 
-            if 'content_encrypted' in attach:
-                email_json['attachments'][idx]['content_encrypted'] = attach['content_encrypted']
-            if 'content_extracted' in attach:
-                email_json['attachments'][idx]['content_extracted'] = attach['content_extracted']
+            # In Docex mode copy the content into the body - docex always 1 doc per email
+            if docex_mode:
+                if 'content' in dest_attach:
+                        email_json['body'] = dest_attach['content']
+                if 'image_analytics' in dest_attach and 'ocr_output' in dest_attach['image_analytics']:
+                        email_json['body'] = dest_attach['image_analytics']['ocr_output']
+
+            # TODO old code that should be replaced
+            # if 'content' in src_attach:
+            #     email_json['attachments'][idx]['content'] = src_attach['content']
+            #     # If docex - copy the tika content to the email body
+            #     if docex_mode:
+            #         email_json['body'] = src_attach['content']
+            # #  TODO also check the metadata is copied
+            # if 'image_analytics' in src_attach:
+            #     # If docex - copy the ocr extract to the email body
+            #     if docex_mode and "ocr_output" in src_attach["image_analytics"]:
+            #         email_json['body'] = src_attach["image_analytics"]["ocr_output"]
+            #
+            #     if 'image_analytics' in email_json['attachments'][idx]:
+            #         email_json['attachments'][idx]['image_analytics'].update(src_attach['image_analytics'])
+            #     else:
+            #         email_json['attachments'][idx]['image_analytics'] = src_attach['image_analytics']
+            #
+            # if 'content_encrypted' in src_attach:
+            #     email_json['attachments'][idx]['content_encrypted'] = src_attach['content_encrypted']
+            # if 'content_extracted' in src_attach:
+            #     email_json['attachments'][idx]['content_extracted'] = src_attach['content_extracted']
     return json.dumps(email_json)
 
 if __name__ == "__main__":
@@ -64,9 +86,14 @@ if __name__ == "__main__":
 
     parser.add_argument("output_path", help="output directory for spark results")
     parser.add_argument("-d", "--docex_mode", action="store_true", help="docex mode copies extracted text to the email body for further analysis.  Only use with docex.  This will overwrite the email body!")
+    parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")
 
     args = parser.parse_args()
     print "INFO: docex_mode ",args.docex_mode
+
+    lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    print "INFO: Running with json filter {}.".format("enabled" if args.validate_json else "disabled")
+    filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
 
     conf = SparkConf().setAppName("Newman join attachments content")
     sc = SparkContext(conf=conf)
@@ -78,13 +105,13 @@ if __name__ == "__main__":
     # rdd_joined.saveAsTextFile(args.output_path)
 
 
-    rdd_emails = sc.textFile(args.input_emails_path).map(lambda x: json.loads(x)).keyBy(lambda x: x['id'])
+    rdd_emails = sc.textFile(args.input_emails_path).filter(filter_fn).map(lambda x: json.loads(x)).keyBy(lambda x: x['id'])
 
     # Join each of the content rdds to the email rdd
     # TODO fix this iteration - maybe key field is not correct once it joins?
     for input_path in args.attach_input.split(","):
         print "===============================joining datasets: {}".format(input_path)
-        rdd_extracted_content = sc.textFile(input_path).map(fn_attach_array).keyBy(lambda x: x['id'])
+        rdd_extracted_content = sc.textFile(input_path).map(lambda doc : fn_attach_array(filter_fn, doc)).keyBy(lambda x: x['id'])
         rdd_joined = rdd_emails.leftOuterJoin(rdd_extracted_content).map(lambda x: fn_join_contents(x, args.docex_mode))
 
         # rdd_extracted_content2 = sc.textFile("pst-extract/ocr_output/").map(fn_attach_array).keyBy(lambda x: x['id'])

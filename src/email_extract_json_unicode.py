@@ -190,7 +190,14 @@ def createRow(email_id, mail, attach, msg_body, categories):
     senders, senders_line = addrs(mail.get_all('from', []))
     #senders = [target_email if s == 'mailer-daemon' else s for s in senders]
 
+    delivered_to, delivered_to_line = addrs(mail.get_all('Delivered-To', []))
+
     tos, tos_line = addrs(mail.get_all('to', []))
+
+    # SOmetime tos is the string "Undisclosed-Recipient" in which case we can try the delivery address
+    if not tos and delivered_to:
+        tos = delivered_to
+
     ccs, ccs_line = addrs(mail.get_all('cc', []))
     bccs, bccs_line = addrs(mail.get_all('bcc', []))
 
@@ -221,6 +228,8 @@ def createRow(email_id, mail, attach, msg_body, categories):
             "senders_line": senders_line,
             "tos": tos,
             "tos_line": tos_line,
+            "delivered_to": delivered_to,
+            "delivered_to_line": delivered_to_line,
             "ccs": ccs,
             "ccs_line" : ccs_line,
             "bccs": bccs,

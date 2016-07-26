@@ -44,6 +44,8 @@ docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction
 ./bin/run_spark_mitie.sh
 docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ geo-utils ./bin/run_spark_geoip.sh
 
+./bin/run_spark_transaction_entity.sh
+
 ./bin/run_es_ingest.sh $INGEST_ID $CASE_ID $ALTERNATE_ID $LABEL conf/env.cfg
 
 echo "==============================================================Completed newman extraction pipeline====================================================="

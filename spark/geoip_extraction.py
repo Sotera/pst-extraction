@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import sys
-import re
 import argparse
 import json
-from functools import partial
-from operator import attrgetter, itemgetter
+from operator import attrgetter
 from geoip2 import database
 import geoip2.errors
+import os
+import datetime
+from filters import valid_json_filter
+from functools import partial
 from pyspark import SparkContext, SparkConf
 
 #
@@ -62,14 +63,19 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--geodb", default="etc/GeoLite2-City.mmdb", help="path to ip2geo db")
     parser.add_argument("input_emails_content_path", help="email json")
     parser.add_argument("output_emails_with_ip_assignment", help="output directory for emails with ip geo located")
+    parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")
 
     args = parser.parse_args()
+
+    lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    print "INFO: Running with json filter {}.".format("enabled" if args.validate_json else "disabled")
+    filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
 
     conf = SparkConf().setAppName("Newman assign ips to emails")
     sc = SparkContext(conf=conf)
     ips_count = sc.accumulator(0)
     mapfn = partial(assign_ips, ips_count, args.geodb)
-    rdd_emails = sc.textFile(args.input_emails_content_path).coalesce(50).map(lambda x: json.loads(x))
+    rdd_emails = sc.textFile(args.input_emails_content_path).filter(filter_fn).map(lambda x: json.loads(x))
     rdd_emails.mapPartitions(mapfn).map(dump).saveAsTextFile(args.output_emails_with_ip_assignment)
 
     print "IP Locations extracted {} ".format(ips_count.value)

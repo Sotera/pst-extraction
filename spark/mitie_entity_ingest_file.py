@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import os
 import sys
 import re
 import argparse
 import json
+import datetime
+from filters import valid_json_filter
 from functools import partial
 from pyspark import SparkContext, SparkConf
 
@@ -31,7 +34,7 @@ def extract_entities(doc_iter, extract_field='body', extracted_lang_field='body_
                 for rng, tag, score in entities_markup ]
 
             entity_doc = {}
-            entity_doc["entity_full"] = results
+            # entity_doc["entity_full"] = results
             entity_doc["entity_all"] = []
             entity_doc["entity_location"] = []
             entity_doc["entity_organization"] = []
@@ -39,6 +42,9 @@ def extract_entities(doc_iter, extract_field='body', extracted_lang_field='body_
             entity_doc["entity_misc"] = []
 
             for tag, entity, rng, score in results:
+                if len(entity) > 30:
+                    continue
+
                 entity_doc["entity_all"].append(entity)
 
                 if tag == 'LOCATION' and score > 0.3:
@@ -86,12 +92,17 @@ if __name__ == "__main__":
     parser.add_argument("input_emails_content_path", help="email json")
     parser.add_argument("output_emails_with_entities", help="output directory for spark results emails with entity fields")
     parser.add_argument("--extract_field", default="body", help="Set field for MITIE to run entity extraction on.")
+    parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")
 
     args = parser.parse_args()
+
+    lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    print "INFO: Running with json filter {}.".format("enabled" if args.validate_json else "disabled")
+    filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
 
     conf = SparkConf().setAppName("Newman generate entities for emails")
     sc = SparkContext(conf=conf)
 
-    rdd_emails = sc.textFile(args.input_emails_content_path).coalesce(50).map(lambda x: json.loads(x))
+    rdd_emails = sc.textFile(args.input_emails_content_path).filter(filter_fn).map(lambda x: json.loads(x))
     rdd_emails.mapPartitions(lambda docs: extract_entities(docs, args.extract_field)).map(dump).saveAsTextFile(args.output_emails_with_entities)
 

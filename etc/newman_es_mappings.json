@@ -149,7 +149,9 @@
                       "type" : "string"
                     },
                     "coord" : {
-                      "type" : "geo_point"
+                      "type" : "geo_point",
+                      "doc_values": true,
+                      "store": true
                     },
                     "latref" : {
                       "type" : "string"
@@ -224,7 +226,9 @@
                       "type" : "string"
                     },
                     "coord" : {
-                      "type" : "geo_point"
+                      "type" : "geo_point",
+                      "doc_values": true,
+                      "store": true
                     },
                     "latref" : {
                       "type" : "string"
@@ -402,7 +406,9 @@
               "type" : "string"
             },
             "geo_coord" : {
-              "type" : "geo_point"
+              "type" : "geo_point",
+              "doc_values": true,
+              "store": true
             }
           }
         },
@@ -532,7 +538,9 @@
                   "type" : "string"
                 },
                 "coord" : {
-                  "type" : "geo_point"
+                  "type" : "geo_point",
+                  "doc_values": true,
+                  "store": true
                 },
                 "latref" : {
                   "type" : "string"
@@ -584,7 +592,8 @@
       "mapping" : {
         "allow_type_wrapper" : "true"
       },
-      "number_of_shards" : "5",
+      "number_of_shards" : "3",
+      "number_of_replicas" : "0",
       "creation_date" : "1462486510388",
       "analysis" : {
         "analyzer" : {
@@ -600,11 +609,6 @@
             "replacement" : ""
           }
         }
-      },
-      "number_of_replicas" : "1",
-      "uuid" : "X2zgKfwKQXOqGNBULgVo8A",
-      "version" : {
-        "created" : "2000099"
       }
     }
   }

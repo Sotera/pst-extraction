@@ -1,10 +1,13 @@
 #!/usr/bin/env python
-from pyspark import SparkContext, SparkConf
 
-import sys, os
+import os
 import json
 import argparse
 from operator import itemgetter 
+import datetime
+from filters import valid_json_filter
+from functools import partial
+from pyspark import SparkContext, SparkConf
 
 #utils
 def dump(x):
@@ -47,16 +50,21 @@ if __name__ == "__main__":
     parser.add_argument("input_path_emails", help="directory with json emails")
     parser.add_argument("input_path_email_address", help="directory with json of email address and communities")
     parser.add_argument("output_path_email_with_communities", help="output directory for spark results appending communities to emails")
-    
+    parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")
+
     args = parser.parse_args()
+
+    lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    print "INFO: Running with json filter {}.".format("enabled" if args.validate_json else "disabled")
+    filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
 
     conf = SparkConf().setAppName("Newman email community assignment")
     sc = SparkContext(conf=conf)
     rdd_raw_emails = sc.textFile(args.input_path_emails).cache()
     
-    rdd_communities_of_emails = sc.textFile(args.input_path_email_address).map(lambda x: json.loads(x)).flatMap(communities_of_emails)
+    rdd_communities_of_emails = sc.textFile(args.input_path_email_address).filter(filter_fn).map(lambda x: json.loads(x)).flatMap(communities_of_emails)
     #print rdd_communities_of_emails.take(10)
-    rdd_emails_with_communities = rdd_raw_emails.map(lambda x: json.loads(x)).keyBy(itemgetter('id')) \
+    rdd_emails_with_communities = rdd_raw_emails.filter(filter_fn).map(lambda x: json.loads(x)).keyBy(itemgetter('id')) \
                                                 .cogroup(rdd_communities_of_emails) \
                                                 .map(assign_communities) 
 
