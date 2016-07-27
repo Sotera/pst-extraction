@@ -32,7 +32,7 @@ docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction
 
 ./bin/run_binary_extraction_merge.sh --docex_mode
 
-./bin/run_spark_extract_phone.sh
+./bin/run_spark_extract_numbers.sh
 ./bin/run_spark_exif_attachments.sh
 
 ./bin/run_spark_content_split.sh
