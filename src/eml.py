@@ -35,13 +35,13 @@ def skip(iterable, at_start=0, at_end=0):
         yield queue.popleft()
 
 count_total = 0
-def eml_files(dir_):
+def eml_files(dir_, suffix_mask="_mime.txt"):
     global count_total
     for root, _, files in os.walk(dir_, followlinks=False):
         for filename in files:
 #            filename, ext = os.path.splitext(filename)
 #            if ext.replace(".","").lower() == "eml":
-            if filename.endswith("_mime.txt") or filename.endswith(".eml"):
+            if filename.endswith(suffix_mask) or filename.endswith(".eml"):
                 count_total+=1
                 print "Processing message: %s"%str(filename)
                 yield os.path.abspath("{}/{}".format(root, filename))
@@ -68,16 +68,18 @@ examples:
     parser.add_argument("-c", "--case_id", required=True, help="case id used to track and search accross multiple cases")
     parser.add_argument("-a", "--alt_ref_id", required=True, help="an alternate id used to corelate to external datasource")
     parser.add_argument("-b", "--label", required=True, help="user defined label for the dateset")
+    parser.add_argument("--suffix", default="_mime.txt", help="file suffix mask which will be used to designate eml files, default=_mime.txt")
 
 
     #parser.add_argument("infile", nargs='?', type=argparse.FileType('r'), default=sys.stdin, help="Input File")
     args = parser.parse_args()
+    print "ARGS: %s"%str(args)
     emls_path = os.path.abspath(args.eml_root_path)
 
     count_failures = 0
     with RollingFile(args.out_dir, "part", args.limit) as outfile:
     
-        for i, eml_file in enumerate(eml_files(emls_path)):
+        for i, eml_file in enumerate(eml_files(emls_path, args.suffix)):
             guid = str(uuid.uuid1())
             try:
                 categories = email_extract_json_unicode.categoryList(os.path.split(eml_file)[0].replace(emls_path, "", 1))
@@ -98,3 +100,5 @@ examples:
                 prn("completed line: {}".format(i))
 
     print "Completed processing eml directories. Total messages={} Failures={}".format(count_total, count_failures)
+    if count_total == 0:
+        raise IOError("Zero EML files were found based on the directory and suffix mask provided.  Please check and try again.")
