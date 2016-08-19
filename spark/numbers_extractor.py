@@ -8,7 +8,6 @@ import datetime
 import phonenumbers # https://github.com/daviddrysdale/python-phonenumbers
 from phonenumbers import geocoder, Leniency
 from phonenumbers import carrier
-from operator import attrgetter, itemgetter
 from functools import partial
 from filters import valid_json_filter
 from pyspark import SparkContext, SparkConf
@@ -48,6 +47,8 @@ def dump(x):
 # TODO if updating regex also update the regex in Newman UI es_queries
 phone_number_candidate_regex_str = "([+]?[0-9]?[0-9]?[0-9- .()]{6,15})"
 creditcard_number_candidate_regex_str = "([0-9]{4}\W*){4}"
+# model_number_candidate_regex_str = "[a-zA-Z0-9#/\\-]{3,}$"
+model_number_candidate_regex_str =r"^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9\\/:#-]+)$"
 
 # phonenum_candidate_regex_str = "^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$"
 
@@ -160,7 +161,7 @@ def find_phone_numbers(source_txt):
 
 def find_creditcard_numbers(source_txt):
     # logger = get_logger()
-    tagged_phone_entities = []
+    tagged_creditcard_entities = []
 
     for match in re.finditer(creditcard_number_candidate_regex_str , source_txt, re.MULTILINE | re.UNICODE):
         # Extract the full-text value and the "normalized" value (i.e., digits only)
@@ -203,13 +204,62 @@ def find_creditcard_numbers(source_txt):
             u"excerpt": excerpt,
             u"excerpt_value_start": excerpt_value_start,
             u"excerpt_value_stop": excerpt_value_stop,
-            u"possible_area": None,
-            u"possible_carrier": None
         }
 
-        tagged_phone_entities.append(entity_dict)
+        tagged_creditcard_entities.append(entity_dict)
 
-    return tagged_phone_entities
+    return tagged_creditcard_entities
+
+
+def find_model_numbers(source_txt):
+    tagged_modelnumber_entities = []
+
+    for match in re.finditer(model_number_candidate_regex_str, source_txt, re.MULTILINE | re.UNICODE):
+        # Extract the full-text value and the "normalized" value (i.e., digits only)
+        value = source_txt[match.start() : match.end()]
+        # value_normalized = re.sub(u'[^\d]', u'', value)
+
+        # Extract an excerpt of text that precedes the match
+        excerpt_start = match.start() - EXCERPT_CHAR_BUFFER
+        if excerpt_start < 0:
+            excerpt_start = 0
+        excerpt_prefix = source_txt[ excerpt_start : match.start() ]
+
+        card_number_object = None
+
+        # If we got this far, it means we're accepting the number as a phone number. Extract a snippet
+        # of text that follows the match.
+        excerpt_stop = match.end() + EXCERPT_CHAR_BUFFER
+        if excerpt_stop > len(source_txt):
+            excerpt_stop = len(source_txt)
+
+        excerpt = source_txt[excerpt_start:excerpt_stop]
+        excerpt_value_start = match.start() - excerpt_start
+        excerpt_value_stop = excerpt_stop - match.end()
+
+        # Remove carriage returns replace multiple, consecutive whitespace with a single space
+        # so the excerpt will be compact and one line.
+        excerpt = re.sub('\r+', u'', excerpt)
+        excerpt = re.sub('\n+', u' ', excerpt)
+        excerpt = re.sub(u'\s+', u' ', excerpt)
+
+        print(u"Card#: %s, \"%s\"" % (value, excerpt))
+
+        entity_dict = {
+            u"type": u"model_number",
+            u"value": value,
+            u"value_normalized": value,
+            u"note": None,
+            u"body_offset_start": match.start(),
+            u"body_offset_stop": match.end(),
+            u"excerpt": excerpt,
+            u"excerpt_value_start": excerpt_value_start,
+            u"excerpt_value_stop": excerpt_value_stop,
+        }
+
+        tagged_modelnumber_entities.append(entity_dict)
+
+    return tagged_modelnumber_entities
 
 def process_email(email):
     doc = {}
@@ -220,30 +270,23 @@ def process_email(email):
 
     numbers = []
 
+    number_extractor_fns = [find_phone_numbers, find_creditcard_numbers, find_model_numbers]
+
     try:
         if "body" in email:
-            try:
-                numbers += find_phone_numbers(email["body"])
-            except:
-                print "Failed to process find_phone_numbers email['body'] {}".format(doc['id'])
-
-            try:
-                numbers += find_creditcard_numbers(email["body"])
-            except:
-                print "Failed to process find_creditcard_numbers email['body'] {}".format(doc['id'])
-
+            for fn in number_extractor_fns:
+                try:
+                    print "processing {}".format(fn.__name__)
+                    numbers += fn(email["body"])
+                except:
+                    print "Failed to process function:{} for email['body'] ID: {}".format(fn.__name__, doc['id'])
 
         if "attachments" in email and "content" in email["attachments"]:
-            try:
-                numbers += find_phone_numbers(email["attachments"]["content"])
-            except:
-                print "Failed to process find_phone_numbers email['attachments']['content'] {}".format(doc['id'])
-
-            try:
-                numbers += find_creditcard_numbers(email["attachments"]["content"])
-            except:
-                print "Failed to process find_creditcard_numbers email['attachments']['content'] {}".format(doc['id'])
-
+            for fn in number_extractor_fns:
+                try:
+                    numbers += fn(email["attachments"]["content"])
+                except:
+                    print "Failed to process function:{} for email['attachments']['content']  ID: {}".format(fn.__name__, doc['id'])
 
         # TODO remove this field
         email["phone_numbers"] += [num["value_normalized"] for num in numbers]
@@ -252,6 +295,8 @@ def process_email(email):
                                  "normalized" : num["value_normalized"],
                                  "type" : num["type"],
                                  "excerpt" : num["excerpt"],
+                                 "offset_start": num["body_offset_start"],
+                                 "offset_end": num["body_offset_stop"],
                              }
                              for num in numbers]
 
@@ -284,6 +329,17 @@ def test_credit():
     print find_creditcard_numbers( "visa: 1234-4567-1234-5678-0987-0954")
     print find_creditcard_numbers( "visa: 1234\t4567\t1234\t5678foo bar")
 
+
+def test_model():
+    print find_model_numbers( "abcd")
+    print find_model_numbers( "1234")
+    print find_model_numbers( "abcd 1234")
+    print find_model_numbers( "3a")
+    print find_model_numbers( "b2")
+    print find_model_numbers( "323-csd\\123:v")
+    print find_model_numbers( "323-4876")
+
+
 if __name__ == '__main__':
     desc='regexp extraction'
     parser = argparse.ArgumentParser(
@@ -293,6 +349,7 @@ if __name__ == '__main__':
 
 
     # TEST
+    # test_model()
     # test_credit()
     # test()
     # print "done"

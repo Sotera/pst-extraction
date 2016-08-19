@@ -45,6 +45,7 @@ def extractAttachments(x):
         'content_length',
         'content_type',
         'content_hash',
+        'content_tika_langid',
         'exif',
         'image_analytics',
         'metadata',
