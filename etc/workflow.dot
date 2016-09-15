@@ -1,0 +1,55 @@
+digraph G {
+   pst [label="pst"] ;
+   mbox [label="explode mbox"] ;
+   eml [label="explode .eml"] ;
+   msg [label="TODO: explode .msg"] ;   
+   other [label="TODO: unknown format"] ; 
+   tika [label="tika extraction"] ;
+   tika_merge [label="tika merge content"] ;
+   attachments [label="attachments"];
+   emails_text [label="emails text"];
+   emailaddr_comm [label="email addr with community"];
+   emails_text_comm [label="email with communities"];
+   topics [label="topic clustering"];
+   emails_text_comm_topics [label="emails with communities and topics"];
+   emails_text_comm_topics_mitie [label="emails with communities, topics and entities"];
+
+   es_email_addr [label="email address elastic index"];
+   es_email [label="email elastic index"];
+   es_attach [label="attachment index"];
+
+   email_location [label="email id with extracted geo locations"];
+   email_origin_loc [label="email origin location"];
+   
+   pst -> mbox ;
+   pst -> eml ;
+   pst -> msg ;
+   eml -> tika ;
+   msg -> tika ;
+   mbox -> tika ;
+   other -> tika ;
+   tika -> tika_merge ;
+   tika_merge -> attachments ;
+   tika_merge -> emails_text ;
+   emails_text -> emailaddr_comm ;
+   emailaddr_comm -> emails_text_comm;
+   emails_text -> emails_text_comm;
+   emails_text_comm -> topics;   
+   topics -> emails_text_comm_topics;
+   emails_text_comm_topics -> emails_text_comm_topics_mitie;
+
+   emails_text_comm_topics_mitie -> es_email ;
+   attachments -> es_attach ;
+   emailaddr_comm -> es_email_addr ;
+
+   emails_text -> email_location ;
+   emails_text -> email_origin_loc;
+   
+   subgraph cluster_0 {
+            es_email ;
+            es_attach ;
+            es_email_addr ;
+            label="Elastic Search indices" ;
+            color=red;
+   }
+}
