@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
 import locale
+import re
+import sys
 import argparse
 import json
 import csv
@@ -11,6 +12,7 @@ import os
 import datetime
 from filters import valid_json_filter
 from functools import partial
+
 from pyspark import SparkContext, SparkConf
 
 
@@ -31,52 +33,38 @@ def make_csv(emails):
             # print str(rows)
             csv_writer.writerows (rows)
 
-# This the regex side of the extractor:
 
-def run_regex_extraction(sample_text_str):
-
-    # symbol usage:
-
-    # locales=('en_AG', 'en_AU.utf8', 'en_BW.utf8', 'en_CA.utf8',
-    #     'en_DK.utf8', 'en_GB.utf8', 'en_HK.utf8', 'en_IE.utf8', 'en_IN', 'en_NG',
-    #     'en_NZ.utf8', 'en_PH.utf8', 'en_SG.utf8', 'en_US.utf8', 'en_ZA.utf8',
-    #     'en_ZW.utf8')
-    locales =('en_AG', 'en_AU.utf8', 'en_CA.utf8',
-              'en_HK.utf8',
-              'en_NZ.utf8', 'en_SG.utf8', 'en_US.utf8',
-              'en_ZW.utf8')
-
-    # for l in locales:
-    #     locale.setlocale(locale.LC_ALL, l)
-    #     conv=locale.localeconv()
-
-    # print('{int_curr_symbol} ==> {currency_symbol}'.format(**conv))
-
-    #     char_curr_sequence = conv['int_curr_symbol']
-    #     currency_symbol = conv['currency_symbol']
-    #
-    #     print char_curr_sequence
-    #     symbol = '$'
-    #     trans_amount_l = scan_str_for_currency_symbols(symbol, sample_text_str)
-    #     print trans_amount_l
-    #
-    # print sample_text_str
-
-    symbol = '$'
-    trans_amount_l = scan_str_for_currency_symbols(symbol, sample_text_str)
-    print trans_amount_l
-    return trans_amount_l
 
 # Currently working regex (without spaces between $ and digits):
-_REGEX = ur'((?:0|[1-9]\d{0,3}(?:,?\d{3})*)(?:\.\d+)?)'
+_REGEX = ur'((?:0|[0-9]\d{0,3}(?:,?\d{3})*)(?:\.\d+)?)'
+
 # _REGEX_ORIG = ur'([$])((?:0|[1-9]\d{0,3}(?:,?\d{3})*)(?:\.\d+)?)'
+
+# _REGEX=r'^\$?(?=\(.*\)|[^()]*$)\(?\d{1,3}(,?\d{3})?(\.\d\d?)?\)?$'
+# _REGEX=r'^\$?(?=\(.*\)|[^()]*$)\(?\d{1,3}(,?\d{3})?(\.\d\d?)?\)?$'
+# _REGEX=ur'^[+-]?[0-9]{1,3}(?:[0-9]*(?:[.,][0-9]{2})?|(?:,[0-9]{3})*(?:\.[0-9]{2})?|(?:\.[0-9]{3})*(?:,[0-9]{2})?)$'
+# _REGEX=r'(^| )[$]?[+-]?[0-9]{1,3}(?:[0-9]*(?:[.,][0-9]{2})?|(?:,[0-9]{3})*(?:\.[0-9]{2})?|(?:\.[0-9]{3})*(?:,[0-9]{2})?)'
 
 CURRENCY_CHAR_WINDOW = 6
 TRANSACTION_CHAR_WINDOW = 25
 # TODO do something better
-transaction_keyword_list = ['balance', 'paid','deposit', 'withdraw']
+transaction_keyword_list = ['balance', 'paid','deposit', 'withdraw', 'bill', 'receipt', 'total']
 # TODO LOAD from localization api etc
-currency_key_list = ['$',"usd","us$"]
+currency_key_list = ["US$"]
+
+def gen_currency_keys():
+    locales=('en_AU.utf8', 'en_BW.utf8', 'en_CA.utf8', 'en_DK.utf8', 'en_GB.utf8', 'en_HK.utf8', 'en_IE.utf8', 'en_IN', 'en_NG', 'en_PH.utf8', 'en_US.utf8', 'en_ZA.utf8', 'en_ZW.utf8', 'ja_JP.utf8')
+    currency_keys = []
+    for l in locales:
+        try:
+            locale.setlocale(locale.LC_ALL, l)
+            conv=locale.localeconv()
+            print('{ics} ==> {s}'.format(ics=conv['int_curr_symbol'], s=conv['currency_symbol']))
+            currency_key_list.append(conv['int_curr_symbol'].upper())
+            currency_key_list.append(conv['currency_symbol'])
+        except Exception as e:
+            print "FAILED to load locale for {}. {}".format(l, e)
+
 
 def contains_transaction_key(match, text):
     excerpt_start = max(match.start() - TRANSACTION_CHAR_WINDOW, 0)
@@ -92,7 +80,7 @@ def contains_transaction_key(match, text):
 
     # If the sample string contains *any* of the keywords return true
     if any(transaction_keyword in excerpt.lower() for transaction_keyword in transaction_keyword_list):
-        return (True, excerpt)
+        return (True, excerpt, match.start(), match.end())
 
     return (False, excerpt)
 
@@ -113,8 +101,8 @@ def contains_currency_symbol(match, text):
 
 
     # If the sample string contains *any* of the keywords return true
-    if any(currency_key in excerpt.lower() for currency_key in currency_key_list):
-        return (True, excerpt)
+    if any(currency_key in excerpt.upper() for currency_key in currency_key_list):
+        return (True, excerpt, match.start(), match.end())
 
     return (False, excerpt)
 
@@ -151,6 +139,8 @@ def currency(full_text_str):
                 c["trans_ex"] = found_transaction[1]
             if c:
                 c["value"] = value
+                c["start"] = match.start()
+                c["end"] = match.end()
                 tagged_currency_entities.append(c)
 
     return tagged_currency_entities
@@ -184,6 +174,20 @@ def process_email(email):
     currency_entities = currency(all_the_text)
     # TODO extract attachment numbers
     email["currency_entities"] = currency_entities
+    # TODO uncomment after mapping is migrated to NESTED type
+    # for currency_entity in currency_entities:
+    #     try:
+    #         email["numbers"].append({
+    #                              "normalized" : currency_entity["value"],
+    #                              "type" : "tansaction" if "trans_ex" in currency_entity else "currency",
+    #                              "excerpt" : currency_entity.get("trans_ex", currency_entity.get("symbol_ex",'')),
+    #                              "offset_start": currency_entity["start"],
+    #                              "offset_end": currency_entity["end"],
+    #                          })
+    #     except:
+    #         print sys.exc_info()[0]
+    #         print "Failed to parse currency entity: %s"% currency_entity
+
     return email
 
 def process_patition(emails):
@@ -192,7 +196,11 @@ def process_patition(emails):
 
 
 def test():
-    return """I have sent $200.10 to you. That is 10 $-20.
+    return """
+001-001 HK$32"
+USD ABC145 $-321
+SOME annoying symbol £7510.21 for money
+I have sent $200.10 to you. That is 10 $-20.
 Subtotal $1000
 Total $6000
 1000.23
@@ -205,9 +213,18 @@ Until then, we will rely on the 20,000 US$ we have remaining.
 """
 
 if __name__ == '__main__':
-    # currency(test())
+    # gen_currency_keys()
+    # print  currency(test())
     # print "DONE."
-
+    #
+    # print currency_key_list
+    #
+    # if "£" in currency_key_list:
+    #     print "In list"
+    #
+    # print currency_key_list[10]
+    # if '£' == (currency_key_list[10]):
+    #     print 'match'
 
     desc='currency extraction'
     parser = argparse.ArgumentParser(
@@ -217,7 +234,7 @@ if __name__ == '__main__':
 
 
     # SPARK
-    #
+
     parser.add_argument("input_content_path", help="input email or attachment content path")
     parser.add_argument("output_content_currency", help="output text body enriched with currency tags and possibly text locations.")
     parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")

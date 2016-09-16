@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+echo "===========================================$0 $@"
+
 INGEST_ID=$1
 CASE_ID=$2
 ALTERNATE_ID=$3
@@ -24,17 +26,17 @@ set -e
 CURRENT_DIR=$(pwd)
 
 ./bin/run_spark_tika.sh
-
-#Added for spam filter and ocr processing:
-#-------------------
-#./bin/run_spam_filter.sh
-#-------------------
-
+#
+##Added for spam filter and ocr processing:
+##-------------------
+##./bin/run_spam_filter.sh
+##-------------------
+#
 docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ -v $NEWMAN_RESEARCH_OCR_HOME/spark-newman-extraction:/srv/software/pst-extraction/ocr ocr ./bin/run_ocr_processing.sh
 docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ -v $NEWMAN_RESEARCH_OCR_HOME/spark-newman-human-receipt-detection:/srv/software/pst-extraction/image-detection ocr ./bin/run_human_receipt_detection_harness.sh
-
-
-#Merge step which will add the tika content and the image_analytics back to the original doc
+#
+#
+##Merge step which will add the tika content and the image_analytics back to the original doc
 ./bin/run_binary_extraction_merge.sh
 
 ./bin/run_spark_extract_numbers.sh

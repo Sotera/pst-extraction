@@ -287,7 +287,24 @@
           "type" : "string"
         },
         "body" : {
-          "type" : "string"
+          "type" : "string",
+          "fields": {
+            "account_number" : {
+              "type" : "string",
+              "analyzer" : "account_number_analyzer",
+              "include_in_all": false
+            },
+            "trigram": {
+              "type": "string",
+              "analyzer": "trigram_analyzer",
+              "include_in_all": false
+            },
+            "trigram_d": {
+              "type": "string",
+              "analyzer": "trigram_d_analyzer",
+              "include_in_all": false
+            }
+          }
         },
         "body_lang" : {
           "type" : "string"
@@ -417,16 +434,22 @@
         "messageid" : {
           "type" : "string"
         },
-        "numbers" : {
-          "properties" : {
-            "excerpt" : {
-              "type" : "string"
+        "numbers": {
+          "properties": {
+            "offset_start": {
+              "type": "long"
             },
-            "normalized" : {
-              "type" : "string"
+            "normalized": {
+              "type": "string"
             },
-            "type" : {
-              "type" : "string"
+            "offset_end": {
+              "type": "long"
+            },
+            "excerpt": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
             }
           }
         },
@@ -456,7 +479,16 @@
           }
         },
         "phone_numbers" : {
-          "type" : "string"
+          "type" : "string",
+          "fields": {
+            "trigram": {
+              "type": "string",
+              "analyzer": "trigram_analyzer"
+            }
+          },
+          "copy_to": [
+            "trigram"
+          ]
         },
         "references" : {
           "type" : "string"
@@ -523,6 +555,12 @@
         },
         "tos_line" : {
           "type" : "string"
+        },
+        "trigram" : {
+          "type": "string",
+          "analyzer" : "trigram_analyzer",
+          "include_in_all": false,
+          "term_vector" : "yes"
         }
       }
     },
@@ -643,21 +681,67 @@
       "mapping" : {
         "allow_type_wrapper" : "true"
       },
-      "number_of_shards" : "3",
+      "number_of_shards" : "1",
       "number_of_replicas" : "0",
-      "creation_date" : "1462486510388",
+
       "analysis" : {
         "analyzer" : {
+          "account_number_analyzer" : {
+            "tokenizer": "account_number_tokenizer",
+            "filter":   [
+              "account_number_normalization_filter"
+            ]
+          },
           "domain_analyzer" : {
             "char_filter" : [ "domain_pattern" ],
             "tokenizer" : "standard"
+          },
+          "trigram_analyzer": {
+            "type":      "custom",
+            "tokenizer": "standard",
+            "filter":   [
+              "lowercase",
+              "trigram_filter"
+            ]
+          },
+          "trigram_d_analyzer": {
+            "type": "custom",
+            "tokenizer": "trigram_d_tokenizer",
+            "filter": [
+              "lowercase"
+            ]
           }
         },
         "char_filter" : {
           "domain_pattern" : {
-            "pattern" : ".*@",
             "type" : "pattern_replace",
+            "pattern" : ".*@",
             "replacement" : ""
+          }
+        },
+        "filter": {
+          "trigram_filter": {
+            "type":     "ngram",
+            "min_gram": 3,
+            "max_gram": 3
+          },
+          "account_number_normalization_filter": {
+            "type" : "pattern_replace",
+            "pattern" : "[ -]",
+            "replacement" : ""
+          }
+        },
+        "tokenizer": {
+          "trigram_d_tokenizer": {
+            "type": "nGram",
+            "min_gram": 3,
+            "max_gram": 3,
+            "token_chars": [ "digit" ]
+          },
+          "account_number_tokenizer" : {
+            "type" : "pattern",
+            "pattern" : "([\\d]{4}[ -]?[\\d]{4}[ -]?[\\d]{4}[ -]?[\\d]{4})",
+            "group" : 0
           }
         }
       }
