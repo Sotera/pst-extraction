@@ -1,17 +1,58 @@
-__author__ = 'root'
-
 import xmltodict
-import json
-from datetime import datetime
-import dateutil
 import dateutil.parser
 
+def parties(bib):
+    if 'parties' in bib:
+        applicants = bib['parties']['applicants']['applicant']
+    else:
+        applicants = bib['us-parties']['us-applicants']['us-applicant']
+    _applicants = []
+    i = 0
+    #applicants
+    if type(applicants)==type([]):
+        for a in applicants:
+            temp = {}
+            if 'last-name' in a['addressbook']:
+                temp['name'] = a['addressbook']['first-name'] + " " + a['addressbook']['last-name'] if 'first-name' in a['addressbook'] else a['addressbook']['last-name']
+            else:
+                temp['name'] = a['addressbook']['orgname']
+            temp['country'] = a['addressbook']['address']['country'] if 'address' in a['addressbook'] else None
+            _applicants.append(temp)
+    else:
+        if 'last-name' in applicants['addressbook']:
+            temp = {'name':applicants['addressbook']['first-name'] + " " + applicants['addressbook']['last-name'] if 'first-name' in applicants['addressbook'] else applicants['addressbook']['last-name']}
+            temp['country'] = applicants['addressbook']['address']['country'] if 'address' in applicants['addressbook'] else None
+            _applicants.append(temp)
+        else:
+            temp = {'name':applicants['addressbook'][u'orgname']}
+            temp['country'] = applicants['addressbook']['address']['country'] if 'address' in applicants['addressbook'] else None
+            _applicants.append(temp)
+    #inventors
+    if 'us-parties' in bib and 'inventors' in bib['us-parties']:
+        inv = bib['us-parties']['inventors']['inventor']
+        if type(inv) == type([]):
+            for a in inv:
+                temp = {'name':a['addressbook']['first-name'] + " " + a['addressbook']['last-name'] if 'first-name' in a['addressbook'] else a['addressbook']['last-name']}
+                temp['country'] = a['addressbook']['address']['country'] if 'address' in a['addressbook'] else None
+                _applicants.append(temp)
+        else:
+            temp = {'name':inv['addressbook']['first-name'] + " " + inv['addressbook']['last-name'] if 'first-name' in inv['addressbook'] else inv['addressbook']['last-name']}
+            temp['country'] = {inv['addressbook']['address']['country'] if 'address' in inv['addressbook'] else None}
+            _applicants.append(temp)
+
+    return _applicants
 
 def rec_to_row(line):
-    tree = xmltodict.parse(line)
+    try:
+        tree = xmltodict.parse(line)
+    except:
+        return None
+    if 'us-patent-application' not in tree:
+        return None
     bib = tree['us-patent-application']['us-bibliographic-data-application']
     pub_ref = bib['publication-reference']['document-id']
     _bib_pub_data = pub_ref['country'] + "_" + pub_ref['doc-number'] + "_" + pub_ref['date']
+    _id = pub_ref['doc-number']
     app_ref = bib['application-reference']['document-id']
     _bib_app_data = app_ref['country'] + "_" + app_ref['doc-number'] + "_" + app_ref['date']
     _application_series = bib['us-application-series-code']
@@ -34,22 +75,7 @@ def rec_to_row(line):
     except:
         _prov = None
 
-    try:
-        applicants = bib['parties']['applicants']['applicant']
-        _applicants = {}
-        i = 0
-        if type(applicants)==type([]):
-            for a in applicants:
-                _applicants[str(i)] = {}
-                _applicants[str(i)]['name'] = a['addressbook']['first-name'] + " " + a['addressbook']['last-name'] if 'first-name' in a['addressbook'] else a['addressbook']['last-name']
-                _applicants[str(i)]['country'] = a['addressbook']['address']['country']
-                i += 1
-        else:
-            _applicants[str(i)] = {'name':applicants['addressbook']['first-name'] + " " + applicants['addressbook']['last-name'] if 'first-name' in applicants['addressbook'] else applicants['addressbook']['last-name'],
-                                   'country':applicants['addressbook']['address']['country']}
-    except:
-        return None
-
+    _applicants = parties(bib)
     try:
         _abstract = tree['us-patent-application']['abstract']['p']['#text']
     except:
@@ -59,6 +85,8 @@ def rec_to_row(line):
                 _abstract = _abstract + " " + p['#text']
 
     return {"pub_data": _bib_pub_data,
+                "id": _id,
+                "applicants": _applicants,
                "app_data": _bib_app_data,
                "pub_date": dateutil.parser.parse(tree['us-patent-application']['@date-publ']).strftime('%Y-%m-%dT%H:%M:%S'),
                "prod_date": dateutil.parser.parse(tree['us-patent-application']['@date-produced']).strftime('%Y-%m-%dT%H:%M:%S'),
@@ -68,16 +96,4 @@ def rec_to_row(line):
                "parent": _parent_id,
                "provisional_app": _prov,
                "child": _child_id
-              }
-
-#    return Row(pub_data = _bib_pub_data,
-#               app_data = _bib_app_data,
-#               pub_date = datetime.strptime(tree['us-patent-application']['@date-publ'], '%Y%m%d'),
-#               prod_date = datetime.strptime(tree['us-patent-application']['@date-produced'], '%Y%m%d'),
-#               series = _application_series,
-#               title = _title,
-#               abstract = _abstract,
-#               parent = _parent_id,
-#               provisional_app = _prov,
-#               child = _child_id
-#              )
+            }
