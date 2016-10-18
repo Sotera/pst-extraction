@@ -230,7 +230,7 @@ def createRow(email_id, mail, attach, msg_body, body_type, categories):
             "references": references,
             "subject": subject,
             "body": msg_body,
-            "body_as_html": body_type
+            "body_as_html": body_type == 'html'
             }
     return doc
 
