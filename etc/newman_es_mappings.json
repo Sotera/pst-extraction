@@ -312,6 +312,9 @@
         "body_translated" : {
           "type" : "string"
         },
+        "body_as_html" : {
+          "type" : "boolean"
+        },
         "case_id" : {
           "type" : "string"
         },

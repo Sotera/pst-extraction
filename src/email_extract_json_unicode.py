@@ -7,7 +7,7 @@ import hashlib
 import base64
 import email
 import uuid
-from email.utils import getaddresses, parsedate_tz, parsedate
+from email.utils import getaddresses, parsedate_tz
 
 import dateutil.parser
 import dateutil.tz
@@ -230,7 +230,7 @@ def createRow(email_id, mail, attach, msg_body, body_type, categories):
             "references": references,
             "subject": subject,
             "body": msg_body,
-            "body_as_html": body_type
+            "body_as_html": body_type == 'html'
             }
     return doc
 
@@ -287,7 +287,7 @@ def extract(email_id, message, categories, preserve_attachments=True):
                 msg += u"\n=============================Next Part==============================\n"
                 body_type = "text"
 
-            msg +=html
+            msg += html
 
         if part.get_content_type() == 'message/delivery-status':
             continue
