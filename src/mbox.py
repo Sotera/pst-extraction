@@ -87,8 +87,8 @@ examples:
                 row["label"] = args.label
                 row["original_artifact"] = {"filename" : os.path.basename(mbox_file), "type" : "mbox"}
 
-                spit(outfile, json.dumps(row)+ "\n")
-            except Exception as e:
+                spit(outfile, json.dumps(row)+ u"\n")
+            except UnicodeDecodeError as e:
                 try:
                     _,name = os.path.split(mbox_file)
                     _dir = "{}/{}_{}".format("tmp/failed", name, lex_date)
@@ -97,9 +97,13 @@ examples:
                 except:
                     print "Failed to log broken file!  Check dataset for Errors!"
 
-                traceback.print_exc()        
+                # print "-------------------------------"
+                # traceback.print_exc()
+                # traceback./
+                # print "+++++++++++++++++++++++++++++++"
+
                 count_failures += 1
-                print "FAILED to process mbox message part.  Exception line: {} | {} ".format(j, e.message)
+                print "FAILED to process mbox message part for {} --  Exception line: {} | {} .".format(guid, j, e)
 
             if j % 100 == 0:
                 prn("completed line: {}".format(j)) 

@@ -43,7 +43,9 @@ def process_image(byte64_jpeg, filename):
     try:
         tags = exifread.process_file(buf)
     except:
-        print "failed to process tags for filename"%filename, sys.exc_info()[0]
+        # TODO this may die because of the UNICODE set being unprintable in the console
+        # print u"failed to process tags for filename {}.  Exception: {}".format(filename, sys.exc_info()[0])
+        print u"failed to process tags for.  Exception: {}".format(sys.exc_info()[0])
         return gps
 
     if tags and len(tags) > 0:
@@ -64,11 +66,9 @@ def process_image(byte64_jpeg, filename):
         if "GPS GPSAltitude" in tags:
             gps["alt"] = tags["GPS GPSAltitude"].printable
 
-    else:
-        print "No exif gps tags for: %s "%filename
-
-    # TODO remove
-    print "File: %s, gps:%s"%(filename,str(gps))
+    # TODO this may die because of the UNICODE set being unprintable in the console
+    # else:
+    #     print u"No exif gps tags for: {} ".format(filename)
 
     return gps
 
@@ -76,17 +76,19 @@ def process_image(byte64_jpeg, filename):
 def validate(gps, filename):
     # TODO need better logic for this validation Should not be set to 0
     if "lat" in gps and (gps["lat"] > 90 or gps["lat"] < -90):
-        print "ERROR: EXIF Invalid latitude in file %s, gps:%s"%(filename, str(gps))
+        # TODO this may die because of the UNICODE set being unprintable in the console
+        # print u"ERROR: EXIF Invalid latitude in file %s, gps:%s"%(filename, str(gps))
         gps["lat"] = 0
     if "lon" in gps and (gps["lon"] > 180 or gps["lon"] < -180):
-        print "ERROR: EXIF Invalid longitude in file %s, gps:%s"%(filename, str(gps))
+        # TODO this may die because of the UNICODE set being unprintable in the console
+        # print u"ERROR: EXIF Invalid longitude in file %s, gps:%s"%(filename, str(gps))
         gps["lon"] = 0
     return gps
 
-def process_attachment(attachment):
+def process_attachment(email_id, attachment):
     if attachment:
         attachment["exif"] = {}
-        if "contents64" in attachment and "extension" in attachment and (attachment["extension"] == ".jpg" or attachment["extension"] == ".jpeg"):
+        if "contents64" in attachment and "extension" in attachment and (attachment["extension"] == u".jpg" or attachment["extension"] == u".jpeg"):
             gps={}
             try:
                 gps = process_image(attachment["contents64"], attachment["filename"])
@@ -98,14 +100,15 @@ def process_attachment(attachment):
                     gps.pop('lat', -1)
                     gps.pop('lon', -1)
             except:
-                print "FAILED:  File: %s, gps:%s"%(attachment["filename"],str(gps))
+                # TODO Add back the  filename - this may die because of the UNICODE set being unprintable in the console
+                print u"FAILED:  email_id: {}, gps: {}".format(email_id,str(gps))
                 print "ERROR:", sys.exc_info()[0]
 
     return attachment
 
 def process_email(email):
     for attachment in email["attachments"]:
-        process_attachment(attachment)
+        process_attachment(email["id"], attachment)
     return email
 
 def read_image_as_byte64(file="/home/elliot/images_set/img-20110513-00784.jpg"):
