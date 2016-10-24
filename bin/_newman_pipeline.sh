@@ -26,6 +26,7 @@ set -e
 CURRENT_DIR=$(pwd)
 
 ./bin/run_spark_tika.sh
+
 #
 ##Added for spam filter and ocr processing:
 ##-------------------

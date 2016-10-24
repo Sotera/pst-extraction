@@ -9,7 +9,10 @@ fi
 
 mkdir "pst-extract/mbox/"
 
-for f in pst-extract/pst/*.pst;
+for pst in $(find pst-extract/pst/ -name "*.pst")
 do
-    readpst -r -j 8 -o pst-extract/mbox ${f};
-done;
+    mbox_dir="pst-extract/mbox/${pst#pst-extract/pst/}"
+    mkdir -p ${mbox_dir}
+    echo  "Proccessing pst in path:  $pst => mbox path:  $mbox_dir/"
+    readpst -r -j 8 -o ${mbox_dir} ${pst};
+done

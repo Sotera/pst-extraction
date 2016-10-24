@@ -13,6 +13,9 @@ tmp/
 spark-java/target/
 spark-java/.idea
 
-
 data-extract/
 !data-extract/.keep
+
+pst-extract/
+!pst-extract/.keep
+
