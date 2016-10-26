@@ -85,7 +85,7 @@ examples:
                 row["case_id"] = args.case_id
                 row["alt_ref_id"] = args.alt_ref_id
                 row["label"] = args.label
-                row["original_artifact"] = {"filename" : os.path.basename(mbox_file), "type" : "mbox"}
+                row["original_artifact"] = {"filename" : mbox_file, "type" : "mbox"}
 
                 spit(outfile, json.dumps(row)+ u"\n")
             except UnicodeDecodeError as e:
