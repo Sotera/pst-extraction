@@ -15,6 +15,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.spark.Accumulator;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -31,6 +32,7 @@ import scala.Tuple2;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.*;
+
 import org.apache.log4j.Logger;
 
 /**
@@ -74,7 +76,7 @@ public final class TikaExtraction {
             sanitized = sanitized .substring(1);
         return sanitized;
     }
-//                TODO metadata field contains characters that are illegal in ES fields -- need to go through in detail and extract certain parts based on the doc types
+    //                TODO metadata field contains characters that are illegal in ES fields -- need to go through in detail and extract certain parts based on the doc types
 //                TODO this will be somewhat difficult and time consuming
     public static Map copyMetadata(Metadata metadata, boolean extractMetadata){
         if (!extractMetadata || metadata == null)
@@ -94,13 +96,19 @@ public final class TikaExtraction {
      * @throws SAXException
      * @throws TikaException
      */
-    public static final Tuple2<String, List> extract(Map<String,Object> docMap, boolean extractMetadata) throws IOException, SAXException, TikaException {
+    public static final Tuple2<String, List> extract(Map<String,Object> docMap, boolean extractMetadata,
+                                                     Accumulator<Integer> totalAccum,
+                                                     Accumulator<Integer> failureAccum,
+                                                     Accumulator<Integer> encryptedAccum)
+            throws IOException, SAXException, TikaException {
         List<Map> attachments = ((List<Map>)docMap.get("attachments"));
         List attachmentsList = Lists.newArrayList();
         for(Map attachment : attachments){
             Object base64Contents = attachment.get("contents64");
             if (base64Contents == null)
                 continue;
+
+            totalAccum.add(1);
 
 //          Disable read limit which results in exception:  WriteOutContentHandler.WriteLimitReachedException
             BodyContentHandler handler = new BodyContentHandler(-1);
@@ -136,6 +144,7 @@ public final class TikaExtraction {
                                 .build());
             }catch(org.apache.tika.exception.EncryptedDocumentException cryptoEx){
                 logger.warn(String.format("Parsing encrypted doc: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename")?attachment.get("filename").toString(): ""));
+                encryptedAccum.add(1);
                 attachmentsList.add(
                         new ImmutableMap.Builder<String, Object>()
                                 .put("guid", attachment.get("guid").toString())
@@ -149,6 +158,8 @@ public final class TikaExtraction {
             }catch(TikaException tke){
 //              With encrypted pps files tika may throw this with a cause, instead of an EncryptedDocumentException with cause set to the correct exception
                 if(tke.getCause() instanceof org.apache.poi.EncryptedDocumentException){
+
+                    encryptedAccum.add(1);
                     logger.warn(String.format("Parsing encrypted doc: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename")?attachment.get("filename").toString(): ""), tke);
                     attachmentsList.add(
                             new ImmutableMap.Builder<String, Object>()
@@ -161,14 +172,17 @@ public final class TikaExtraction {
                                     .put("size", bytes.length)
                                     .build());
                 }else{
+                    failureAccum.add(1);
                     logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""), tke);
                 }
             }catch(Exception e){
+                failureAccum.add(1);
                 logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s, filename=%s", docMap.get("id"), attachment.get("guid").toString(), attachment.containsKey("filename") ? attachment.get("filename").toString() : ""), e);
             }catch(NoSuchMethodError nme){
 //              This seems to be an error caused by jar mismatch between spark and tika
 // TODO         Need to look into this more and add shader plugin for the package
                 try{
+                    failureAccum.add(1);
                     logger.error(String.format("Failed to process attachment for: doc=%s, attachment=%s, filename=%s, MIME=%s",
                             docMap.get("id"),
                             attachment.get("guid").toString(),
@@ -187,6 +201,13 @@ public final class TikaExtraction {
         SparkConf sparkConf = new SparkConf().setAppName("Newman attachment text extract");
 
         JavaSparkContext ctx = new JavaSparkContext(sparkConf);
+        System.out.println(String.format("SPARK APPLICATION: Name: %s ID: %s", ctx.sc().appName(), ctx.sc().applicationId()));
+        logger.info(String.format("SPARK APPLICATION: Name: %s ID: %s", ctx.sc().appName(), ctx.sc().applicationId()));
+
+        Accumulator<Integer> totalAccum = ctx.intAccumulator(0);
+        Accumulator<Integer> failureAccum = ctx.intAccumulator(0);
+        Accumulator<Integer> encryptedAccum = ctx.intAccumulator(0);
+
 //        128MB partitions
         ctx.hadoopConfiguration().set("fs.local.block.size", "" + (128 * 1024 * 1024));
         JavaRDD<String> emailJSON = ctx.textFile(inputPath);
@@ -199,10 +220,15 @@ public final class TikaExtraction {
             }
             return true;
         });
-        JavaPairRDD<String, List> tuplesRDD = mapRDD.mapToPair(e -> extract(e, extractMetadata));
+        JavaPairRDD<String, List> tuplesRDD = mapRDD.mapToPair(e -> extract(e, extractMetadata, totalAccum, failureAccum, encryptedAccum));
         JavaRDD<String> json = tuplesRDD.map(t -> (t._1() + "\t"+writeJSON(t._2())));
 
         json.saveAsTextFile(outputPath);
+
+        logger.warn("+++SPARK ACCUMULATOR+++Total attachments: " + totalAccum.value());
+        logger.warn("+++SPARK ACCUMULATOR+++Failed attachments: " + failureAccum.value());
+        logger.warn("+++SPARK ACCUMULATOR+++Encrypted attachments: " + encryptedAccum.value());
+
     }
 
     public static void main(String[] args) throws Exception {
@@ -212,7 +238,6 @@ public final class TikaExtraction {
         options.addOption("m", "metadata", false, "add metadata");
 
         CommandLineParser parser = new BasicParser();
-
         try {
             CommandLine cmd = parser.parse(options, args );
             String inputPath = cmd.getOptionValue("i");
