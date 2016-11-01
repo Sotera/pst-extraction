@@ -105,9 +105,14 @@ def dateToUTCstr(str_date):
     except (TypeError, ValueError) as e:
         # print u"Failed to parse date with dateutil, using email utils: date={}".format(str_date)
         parsed_dt = parsedate_tz(str_date)
-        # Make an arbitrary tz info object name can be anything NSTZ "Newman Seconds Time Zone"
-        nstz_info = dateutil.tz.tzoffset("NSTZ",parsed_dt[9])
-        dt= datetime.datetime(*parsed_dt[:6], tzinfo=nstz_info)
+        try:
+            # Make an arbitrary tz info object name can be anything NSTZ "Newman Seconds Time Zone"
+            nstz_info = dateutil.tz.tzoffset("NSTZ",parsed_dt[9])
+            dt = datetime.datetime(*parsed_dt[:6], tzinfo=nstz_info)
+        except:
+            dt = datetime.datetime(*parsedate_tz(str_date)[:6])
+            # print "ERROR Failed to convert Date: {} from {}".format(str_date, parsed_dt)
+            # raise
 
 
     if not dt.tzinfo:
