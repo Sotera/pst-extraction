@@ -40,20 +40,20 @@ docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction
 ##Merge step which will add the tika content and the image_analytics back to the original doc
 ./bin/run_binary_extraction_merge.sh
 
-./bin/run_spark_extract_numbers.sh
-./bin/run_spark_exif_attachments.sh
+./bin/run_spark_extract_numbers.sh --validate_json
+./bin/run_spark_exif_attachments.sh --validate_json
 
 #Step to remove the base64 binary attachments from the email doc
-./bin/run_spark_content_split.sh
+./bin/run_spark_content_split.sh --validate_json
 
-./bin/run_spark_emailaddr.sh $INGEST_ID $CASE_ID $ALTERNATE_ID $LABEL
-./bin/run_spark_email_community_assign.sh
-./bin/run_spark_topic_clustering.sh
-docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ apertium ./bin/run_spark_translation.sh $FORCE_LANGUGE
-./bin/run_spark_mitie.sh
-docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ geo-utils ./bin/run_spark_geoip.sh
+./bin/run_spark_emailaddr.sh $INGEST_ID $CASE_ID $ALTERNATE_ID $LABEL --validate_json
+./bin/run_spark_email_community_assign.sh --validate_json
+./bin/run_spark_topic_clustering.sh --validate_json
+docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ apertium ./bin/run_spark_translation.sh $FORCE_LANGUGE --validate_json
+./bin/run_spark_mitie.sh --validate_json
+docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ geo-utils ./bin/run_spark_geoip.sh --validate_json
 
-./bin/run_spark_transaction_entity.sh
+./bin/run_spark_transaction_entity.sh --validate_json
 
 ./bin/run_es_ingest.sh $INGEST_ID $CASE_ID $ALTERNATE_ID $LABEL conf/env.cfg
 

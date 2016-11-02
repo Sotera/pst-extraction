@@ -1,10 +1,15 @@
 # Standard lib
 import sys
+import os
 import argparse
 import json
 import subprocess
+
 from langdetect import detect
 from langdetect.lang_detect_exception import LangDetectException
+import datetime
+from functools import partial
+from filters import valid_json_filter
 
 # 3rd-party modules
 from pyspark import SparkContext, SparkConf
@@ -115,6 +120,7 @@ if __name__ == '__main__':
     parser.add_argument("--force_language", default='en', help="Force the code to assume translation from a specific language to english.  If this is set to 'en' no translation will occur.")
     parser.add_argument("--translation_mode", help="Can be set to 'moses'|'apertium', moses requires a moses_server property set.")
     parser.add_argument("--moses_server", default="localhost:8080", help="Moses server to connect to for translation.")
+    parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")
 
     args = parser.parse_args()
 
@@ -123,5 +129,9 @@ if __name__ == '__main__':
     conf = SparkConf().setAppName("Newman translate")
     sc = SparkContext(conf=conf)
 
-    rdd_emails = sc.textFile(args.input_content_path).coalesce(50).map(lambda x: json.loads(x))
+    lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    print "Running with json filter {}.".format("enabled" if args.validate_json else "disabled")
+    filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
+
+    rdd_emails = sc.textFile(args.input_content_path).filter(filter_fn).coalesce(50).map(lambda x: json.loads(x))
     rdd_emails.mapPartitions(lambda docs: process_patition(docs, args.force_language, args.translation_mode, args.moses_server)).map(dump).saveAsTextFile(args.output_content_translated)

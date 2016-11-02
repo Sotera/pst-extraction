@@ -16,6 +16,7 @@ ES_INDEX=$1
 CASE_ID=$2
 ALTERNATE_ID=$3
 LABEL=$4
+VALIDATE_JSON="--validate_json"
 
 printf "Attempting to create doc_type for <${ES_INDEX}> \n"
 
@@ -48,9 +49,9 @@ printf "ES ingest lda clusters\n"
 
 printf "====================ES ingest documents=========================\n"
 printf "ES ingest email addresses\n"
-spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.4.0.jar --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/elastic_bulk_ingest.py "pst-extract/spark-emailaddr/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}"  --es_nodes ${ES_NODES}
+spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.4.0.jar --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/elastic_bulk_ingest.py "pst-extract/spark-emailaddr/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}" --es_nodes ${ES_NODES} ${VALIDATE_JSON}
 printf "ES ingest attachments\n"
-spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.4.0.jar --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/elastic_bulk_ingest.py "pst-extract/spark-emails-attachments/part-*" "${ES_INDEX}/${ES_DOC_TYPE_ATTACHMENTS}" --id_field guid  --es_nodes ${ES_NODES}
+spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.4.0.jar --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/elastic_bulk_ingest.py "pst-extract/spark-emails-attachments/part-*" "${ES_INDEX}/${ES_DOC_TYPE_ATTACHMENTS}" --id_field guid  --es_nodes ${ES_NODES} ${VALIDATE_JSON}
 printf "ES ingest emails\n"
-spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.4.0.jar --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/elastic_bulk_ingest.py "pst-extract/spark-emails-transaction/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}" --id_field id  --es_nodes ${ES_NODES}
+spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.4.0.jar --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/elastic_bulk_ingest.py "pst-extract/spark-emails-transaction/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}" --id_field id --es_nodes ${ES_NODES} ${VALIDATE_JSON}
 

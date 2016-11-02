@@ -6,9 +6,12 @@ import json
 import argparse
 
 import codecs
+import datetime
+
 from collections import Counter
 from operator import add
 from functools import partial
+from filters import valid_json_filter
 
 def juxt_any(predicates, obj):
     '''
@@ -71,6 +74,8 @@ if __name__ == "__main__":
     parser.add_argument("--stopwords", default="etc/english.stopwords", help="stop words file")
     parser.add_argument("--vocab_index", default="tmp/vocab.idx", help="index of vocab")
     parser.add_argument("output_path", help="output directory for topic clustering")
+    parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")
+
     args = parser.parse_args()
     conf = SparkConf().setAppName(desc)
     sc = SparkContext(conf=conf)
@@ -81,8 +86,12 @@ if __name__ == "__main__":
     def doc_to_tuple(sz):
         j = json.loads(sz)
         return (j.get('id'), j.get('body'))
-    
-    doc_wcs = rdd.map(doc_to_tuple).coalesce(50) \
+
+    lex_date = datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+    print "Running with json filter {}.".format("enabled" if args.validate_json else "disabled")
+    filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
+
+    doc_wcs = rdd.filter(filter_fn).map(doc_to_tuple).coalesce(50) \
                  .map(partial(doc_word_counts, broadcastStopwords)).cache()
 
     vocab = doc_wcs.flatMap(lambda x: x[1]) \
