@@ -129,7 +129,7 @@ def header(h, t=None):
     return r
 
 # GET email/attachment/<attachment-GUID>?data_set_id=<data_set>
-def export_attachments(es_host, data_set_id, outfile, sender='', attachment_extension='jpg', date_bounds=None):
+def export_attachments(es_host, data_set_id, outfile, sender='', attachment_extension=None, date_bounds=None):
     print("email.get_attachments_sender(index=%s, sender=%s, attachment_type=%s, date_bounds=%s)" % (data_set_id, sender, attachment_extension, date_bounds))
     if not data_set_id:
         print "invalid service call - missing index"
@@ -268,10 +268,10 @@ if __name__ == "__main__":
     parser.add_argument("index", help="index name")
     parser.add_argument("outfile", help="output tar file, e.g. out.tar")
     parser.add_argument("--es_host", help="elasticsearch host", default='localhost')
-    parser.add_argument("--email_addr", help="email address to export from", default='')
-    parser.add_argument("--file_type", help="type of file to export .e.g. jpg, xsl", default='xls')
-    parser.add_argument("--start_date", help="Start date to export from in yyyy-MM-dd format, e.g. 20001-10-23")
-    parser.add_argument("--end_date", help="End date to export from in yyyy-MM-dd format, e.g. 20001-10-23")
+    parser.add_argument("--email_addr", help="email address to export from, default exports all", default='')
+    parser.add_argument("--file_type", help="type of file to export .e.g. jpg, xsl, default exports all types", default=None)
+    parser.add_argument("--start_date", help="Start date to export from in yyyy-MM-dd format, e.g. 20001-10-23, default exports all")
+    parser.add_argument("--end_date", help="End date to export from in yyyy-MM-dd format, e.g. 20001-10-23 default exports all")
 
 
     args = parser.parse_args()
