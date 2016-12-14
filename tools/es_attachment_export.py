@@ -129,13 +129,13 @@ def header(h, t=None):
     return r
 
 # GET email/attachment/<attachment-GUID>?data_set_id=<data_set>
-def export_attachments(data_set_id, outfile, sender='', attachment_extension='jpg', date_bounds=None):
+def export_attachments(es_host, data_set_id, outfile, sender='', attachment_extension='jpg', date_bounds=None):
     print("email.get_attachments_sender(index=%s, sender=%s, attachment_type=%s, date_bounds=%s)" % (data_set_id, sender, attachment_extension, date_bounds))
     if not data_set_id:
         print "invalid service call - missing index"
         return 1
     # elasticsearch.exceptions.ConnectionTimeout: ConnectionTimeout caused by - ReadTimeoutError(HTTPConnectionPool(host='10.1.70.143', port=9200): Read timed out. (read timeout=10))
-    es = Elasticsearch([{"host" : "10.1.70.143", "port" : 9200}], timeout=60)
+    es = Elasticsearch([{"host" : es_host, "port" : 9200}], timeout=60)
 
     # TODO get accurate count -- this is not strictly needed as attachments will be accessed as inner docs on the email_address
     max_inner_attachments_returned = 100000
@@ -267,6 +267,7 @@ if __name__ == "__main__":
 
     parser.add_argument("index", help="index name")
     parser.add_argument("outfile", help="output tar file, e.g. out.tar")
+    parser.add_argument("--es_host", help="elasticsearch host", default='localhost')
     parser.add_argument("--email_addr", help="email address to export from", default='')
     parser.add_argument("--file_type", help="type of file to export .e.g. jpg, xsl", default='xls')
     parser.add_argument("--start_date", help="Start date to export from in yyyy-MM-dd format, e.g. 20001-10-23")
@@ -274,6 +275,7 @@ if __name__ == "__main__":
 
 
     args = parser.parse_args()
+    print args.es_host
     print args.index
     print args.email_addr
 
@@ -282,5 +284,5 @@ if __name__ == "__main__":
     print args.end_date
 
     date_bounds = None if not (args.start_date and args.end_date) else (args.start_date, args.end_date)
-    export_attachments(args.index, args.outfile,  args.email_addr, args.file_type, date_bounds)
+    export_attachments(args.es_host, args.index, args.outfile,  args.email_addr, args.file_type, date_bounds)
 
