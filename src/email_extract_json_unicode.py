@@ -234,6 +234,8 @@ def createRow(email_id, mail, attach, msg_body, body_type, categories):
             "inreplyto": inreplyto,
             "references": references,
             "subject": subject,
+            #size because of elasticsearch beign broken
+            "subject_size": len(subject),
             "body": msg_body,
             "body_as_html": body_type == 'html'
             }

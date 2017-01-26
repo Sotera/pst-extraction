@@ -511,6 +511,9 @@
         "subject" : {
           "type" : "string"
         },
+        "subject_size" : {
+          "type" : "long"
+        },
         "subject_lang" : {
           "type" : "string"
         },
