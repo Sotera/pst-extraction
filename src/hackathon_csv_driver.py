@@ -23,6 +23,8 @@ import traceback
 sys.path.append("./utils")
 
 from utils.file import slurpBase64, RollingFile
+import dateutil.parser as dparser
+
 
 
 def timeNow():
@@ -36,6 +38,7 @@ def sanitize_field_names(name):
     return name.lower().replace(' ','_').replace(".","_")
 
 email_regexp = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
+ip_regex = re.compile( r"[0-9]+(?:\.[0-9]+){3}")
 
 def csv_row_to_doc_iter(file):
     with open(file, 'rb') as csvfile:
@@ -45,18 +48,26 @@ def csv_row_to_doc_iter(file):
         csvfile.seek(0)
         reader = csv.reader(csvfile, dialect)
 
-        first_row = True
+        header_done = False
         metarow=''
         for row in reader:
+            ips=[]
             emailaddr = None
+            dates=[]
             for field in row:
-                emailaddr = email_regexp.search(field)
-                if emailaddr:
-                    break;
+                if not emailaddr:
+                    emailaddr = email_regexp.search(field)
+
+                if not ips:
+                    ip = ip_regex.search(field)
+                    if ip:
+                        ips.append(ip.group(0))
+                
             if emailaddr:
-                yield (emailaddr.group(0), row, metarow)
-            elif first_row and has_header:
+                yield (emailaddr.group(0), row, metarow, ips)
+            elif not header_done and has_header and len(",".join(row)) > 50:
                 metarow = row
+                header_done = True
                 print "Header row contains:"
                 print ','.join(metarow)
 
@@ -111,10 +122,13 @@ def crawl_files(root_dir, meta):
                         guid = str(uuid.uuid1())
                         row = {
                             "id" : guid,
+                            "originating_ips" : tup[3],
                             "senders" : [str(uid)],
                             "senders_line" : str(uid),
                             "tos" : [tup[0]],
                             "tos_line"  : tup[0],
+                            "senders" : [tup[0]],
+                            "senders_line" : tup[0],
                             "ccs":[],
                             "ccs_line": "",
                             "bccs":[],
@@ -126,8 +140,7 @@ def crawl_files(root_dir, meta):
                             "extended" : {}
                         }
                         if tup[2]:
-                            dictionary = dict(zip(map(lambda x: sanitize_field_names(x), tup[2]), tup[1]))
-                            row["extended"].update(dictionary)
+                            row["extended"].update(dict(zip(map(sanitize_field_names, tup[2]), tup[1])))
                         row.update(meta)
 
                         yield json.dumps(row)

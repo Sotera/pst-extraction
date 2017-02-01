@@ -31,11 +31,13 @@ if [[ -d "pst-extract/spark-emails-with-numbers" ]]; then
 fi
 spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/numbers_extractor.py pst-extract/pst-json pst-extract/spark-emails-with-numbers --validate_json
 
-if [[ -d "pst-extract/spark-emails-transaction" ]]; then
-    rm -rf "pst-extract/spark-emails-transaction"
+if [[ -d "pst-extract/spark-emails-entity" ]]; then
+    rm -rf "pst-extract/spark-emails-entity"
 fi
 
-spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/extract_transaction.py pst-extract/spark-emails-with-numbers pst-extract/spark-emails-transaction --validate_json
+spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/extract_transaction.py pst-extract/spark-emails-with-numbers pst-extract/spark-emails-entity --validate_json
+
+docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ geo-utils ./bin/run_spark_geoip.sh --validate_json
 
 
 if [[ -d "pst-extract/spark-emailaddr" ]]; then
@@ -89,7 +91,7 @@ printf "ES ingest email addresses\n"
 spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.4.0.jar --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/elastic_bulk_ingest.py "pst-extract/spark-emailaddr/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILADDR}" --es_nodes ${ES_NODES} --validate_json
 
 printf "ES ingest emails\n"
-spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.4.0.jar --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/elastic_bulk_ingest.py "pst-extract/spark-emails-transaction/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}" --id_field id --es_nodes ${ES_NODES} --validate_json
+spark-submit --master local[*] --driver-memory 8g --jars lib/elasticsearch-hadoop-2.4.0.jar --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/elastic_bulk_ingest.py "pst-extract/spark-emails-geoip/part-*" "${ES_INDEX}/${ES_DOC_TYPE_EMAILS}" --id_field id --es_nodes ${ES_NODES} --validate_json
 
 
 
