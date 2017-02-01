@@ -40,6 +40,8 @@ def sanitize_field_names(name):
 email_regexp = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 ip_regex = re.compile( r"[0-9]+(?:\.[0-9]+){3}")
 
+MAX_PARSED_ROWS_PER_FILE=10000
+
 def csv_row_to_doc_iter(file):
     with open(file, 'rb') as csvfile:
         dialect = csv.Sniffer().sniff(csvfile.read(4096))
@@ -50,11 +52,18 @@ def csv_row_to_doc_iter(file):
 
         header_done = False
         metarow=''
+
+        count=0
         for row in reader:
+            if count >= MAX_PARSED_ROWS_PER_FILE:
+                print "WARNING - Early termination -- MAX_PARSED_ROWS_PER_FILE reached but there are additional rows to process!"
+                raise StopIteration
+
             ips=[]
             emailaddr = None
             dates=[]
             for field in row:
+
                 if not emailaddr:
                     emailaddr = email_regexp.search(field)
 
@@ -70,6 +79,8 @@ def csv_row_to_doc_iter(file):
                 header_done = True
                 print "Header row contains:"
                 print ','.join(metarow)
+
+            count+=1
 
 # TODO implement me
 def is_columnar(path):
