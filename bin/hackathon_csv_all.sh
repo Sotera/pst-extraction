@@ -31,11 +31,18 @@ if [[ -d "pst-extract/spark-emails-with-numbers" ]]; then
 fi
 spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/numbers_extractor.py pst-extract/pst-json pst-extract/spark-emails-with-numbers --validate_json
 
+if [[ -d "pst-extract/spark-emails-transaction" ]]; then
+    rm -rf "pst-extract/spark-emails-transaction"
+fi
+
+spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/extract_transaction.py pst-extract/spark-emails-with-numbers pst-extract/spark-emails-transaction --validate_json
+
 if [[ -d "pst-extract/spark-emails-entity" ]]; then
     rm -rf "pst-extract/spark-emails-entity"
 fi
 
-spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 --files spark/filters.py spark/extract_transaction.py pst-extract/spark-emails-with-numbers pst-extract/spark-emails-entity --validate_json
+spark-submit --master local[*] --driver-memory 8g --conf spark.storage.memoryFraction=.8 --files spark/filters.py,mitie.py,libmitie.so,ner_model_english.dat,ner_model_spanish.dat spark/mitie_entity_ingest_file.py pst-extract/spark-emails-transaction pst-extract/spark-emails-entity --extract_field body ${RUN_FLAGS}
+
 
 docker run $DOCKER_RUN_MODE --rm -P -v $CURRENT_DIR:/srv/software/pst-extraction/ geo-utils ./bin/run_spark_geoip.sh --validate_json
 
