@@ -13,17 +13,15 @@ import mimetypes
 import dateutil.parser
 import dateutil.tz
 
-import itertools
-import collections
-
 import datetime
+import dateutil.parser as dparser
 import uuid
 import traceback
 
 sys.path.append("./utils")
 
 from utils.file import slurpBase64, RollingFile
-import dateutil.parser as dparser
+
 
 
 
@@ -34,13 +32,38 @@ def prn(msg):
     print "[{}] {}".format(timeNow(), msg)
 
 
-def sanitize_field_names(name):
-    return name.lower().replace(' ','_').replace(".","_")
+def make_extended_field(name):
+    return "extended_"+name.lower().replace(' ','_').replace(".","_")
 
 email_regexp = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
 ip_regex = re.compile( r"[0-9]+(?:\.[0-9]+){3}")
 
 MAX_PARSED_ROWS_PER_FILE=10000
+
+def date_score(date):
+    #Guess the best date
+    if not date:
+        return 0
+
+    dt1_score=0
+    if date.year > 0:
+        dt1_score+=1
+
+    if date.month > 0 and date.month <= 12:
+        dt1_score+=1
+    else:
+        return 0
+
+    if date.day > 0 and date.day <= 31:
+        dt1_score+=1
+    else:
+        return 0
+
+    if date.hour >=0 and date.hour < 24 and date.minute >=0 and date.minute <60 and date.second >=0 and date.second < 60:
+        dt1_score+=1
+
+        return dt1_score
+
 
 def csv_row_to_doc_iter(file):
     with open(file, 'rb') as csvfile:
@@ -54,26 +77,40 @@ def csv_row_to_doc_iter(file):
         metarow=''
 
         count=0
+        DEFAULT_DATE = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
         for row in reader:
             if count >= MAX_PARSED_ROWS_PER_FILE:
                 print "WARNING - Early termination -- MAX_PARSED_ROWS_PER_FILE reached but there are additional rows to process!"
                 raise StopIteration
 
-            ips=[]
+            ip_addr = []
             emailaddr = None
-            dates=[]
+            best_date = None
             for field in row:
 
                 if not emailaddr:
                     emailaddr = email_regexp.search(field)
 
-                if not ips:
+                if not ip_addr:
                     ip = ip_regex.search(field)
                     if ip:
-                        ips.append(ip.group(0))
-                
+                       ip_addr.append( ip.group(0))
+                try:
+                    date = dparser.parse(field, default=DEFAULT_DATE, fuzzy=False)
+                    if not DEFAULT_DATE == date and date.year <= DEFAULT_DATE.year and date.year >= 1900:
+                        if date_score(best_date) < date_score(date) and len(field) >= 8:
+                            best_date = date
+                            # print "DATE "+best_date.strftime("%Y-%m-%d")
+                except:
+                    pass
+
             if emailaddr:
-                yield (emailaddr.group(0), row, metarow, ips)
+                try:
+                    str_date = best_date.strftime('%Y-%m-%dT%H:%M:%S') if best_date else None
+                except:
+                    str_date = None
+
+                yield (emailaddr.group(0), row, metarow, ip_addr, str_date)
             elif not header_done and has_header and len(",".join(row)) > 50:
                 metarow = row
                 header_done = True
@@ -146,12 +183,11 @@ def crawl_files(root_dir, meta):
                             "bccs_line": "",
                             "subject" : rel_path,
                             "body" : ','.join(tup[2]) + "\n" + ','.join(tup[1]),
-                            "datetime" : UTC_date(time.ctime(mtime)),
-                            "attachments" : [],
-                            "extended" : {}
+                            "datetime" : tup[4] if tup[4] else  UTC_date(time.ctime(mtime)),
+                            "attachments" : []
                         }
                         if tup[2]:
-                            row["extended"].update(dict(zip(map(sanitize_field_names, tup[2]), tup[1])))
+                            row.update(dict(zip(map(make_extended_field, tup[2]), tup[1])))
                         row.update(meta)
 
                         yield json.dumps(row)

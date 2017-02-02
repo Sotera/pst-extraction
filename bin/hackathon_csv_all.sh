@@ -61,7 +61,7 @@ VALIDATE_JSON="--validate_json"
 
 printf "Attempting to create doc_type for <${ES_INDEX}> \n"
 
-response=$(curl -s -XPUT -i --write-out %{http_code} --silent --output /dev/null --noproxy localhost, "http://${ES_HOST}:${ES_PORT}/${ES_INDEX}" --data-binary "@etc/newman_es_mappings.json")
+response=$(curl -s -XPUT -i --write-out %{http_code} --silent --output /dev/null --noproxy localhost, "http://${ES_HOST}:${ES_PORT}/${ES_INDEX}" --data-binary "@etc/newman_es_mappings_dynamic.json")
 
 #DEBUG with just the mapping line
 #response=$(curl -s -XPUT -i --write-out %{http_code} "${ES_HOST}:${ES_PORT}/${ES_INDEX}" --data-binary "@etc/newman_es_mappings.json")

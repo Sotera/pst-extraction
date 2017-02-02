@@ -1,0 +1,765 @@
+{
+  "mappings" : {
+    "lda-clustering" : {
+      "properties" : {
+        "idx" : {
+          "type" : "long"
+        },
+        "topic" : {
+          "properties" : {
+            "idx" : {
+              "type" : "long"
+            },
+            "score" : {
+              "type" : "double"
+            },
+            "term" : {
+              "type" : "string"
+            }
+          }
+        }
+      }
+    },
+    "email_address" : {
+      "properties" : {
+        "addr" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "domain" ]
+        },
+        "alt_ref_id" : {
+          "type" : "string"
+        },
+        "attachments_count" : {
+          "type" : "long"
+        },
+        "case_id" : {
+          "type" : "string"
+        },
+        "community" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "community_id" : {
+          "type" : "long"
+        },
+        "domain" : {
+          "type" : "string",
+          "analyzer" : "domain_analyzer"
+        },
+        "first_received" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "first_sent" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "idx" : {
+          "type" : "long"
+        },
+        "ingest_id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "last_received" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "last_sent" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "received_count" : {
+          "type" : "long"
+        },
+        "recepient" : {
+          "type" : "nested",
+          "include_in_parent" : true,
+          "properties" : {
+            "datetime" : {
+              "type" : "date",
+              "format" : "dateOptionalTime"
+            },
+            "email_id" : {
+              "type" : "string"
+            }
+          }
+        },
+        "sender" : {
+          "type" : "nested",
+          "include_in_parent" : true,
+          "properties" : {
+            "datetime" : {
+              "type" : "date",
+              "format" : "dateOptionalTime"
+            },
+            "email_id" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            }
+          }
+        },
+        "sender_attachments" : {
+          "type" : "nested",
+          "include_in_parent" : true,
+          "properties" : {
+            "content_encrypted" : {
+              "type" : "boolean"
+            },
+            "content_extracted" : {
+              "type" : "boolean"
+            },
+            "content_hash" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "content_length" : {
+              "type" : "long"
+            },
+            "content_type" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "datetime" : {
+              "type" : "date",
+              "format" : "dateOptionalTime"
+            },
+            "email_id" : {
+              "type" : "string"
+            },
+            "image_analytics": {
+              "properties": {
+                "human_detected": {
+                  "type": "boolean"
+                },
+                "ocr_output": {
+                  "type": "string"
+                },
+                "receipt_detected": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "exif" : {
+              "properties" : {
+                "alt" : {
+                  "type" : "string"
+                },
+                "gps" : {
+                  "properties" : {
+                    "alt" : {
+                      "type" : "string"
+                    },
+                    "altref" : {
+                      "type" : "string"
+                    },
+                    "coord" : {
+                      "type" : "geo_point",
+                      "doc_values": true,
+                      "store": true
+                    },
+                    "latref" : {
+                      "type" : "string"
+                    },
+                    "lonref" : {
+                      "type" : "string"
+                    }
+                  }
+                }
+              }
+            },
+            "extension" : {
+              "type" : "string"
+            },
+            "filename" : {
+              "type" : "string"
+            },
+            "filesize" : {
+              "type" : "long"
+            },
+            "guid" : {
+              "type" : "string"
+            }
+          }
+        },
+        "sent_count" : {
+          "type" : "long"
+        }
+      }
+    },
+    "emails" : {
+      "dynamic_templates":[
+        { "extended": {
+          "match":              "extended_*",
+          "match_mapping_type": "string",
+          "mapping": {
+            "type":           "string"
+          }
+        }}
+      ],
+      "properties" : {
+        "addrs" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "alt_ref_id" : {
+          "type" : "string"
+        },
+        "attachments" : {
+          "properties" : {
+            "content" : {
+              "type" : "string"
+            },
+            "content_encrypted" : {
+              "type" : "boolean"
+            },
+            "content_extracted" : {
+              "type" : "boolean"
+            },
+            "content_hash" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "content_length" : {
+              "type" : "long"
+            },
+            "content_type" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "image_analytics": {
+              "properties": {
+                "human_detected": {
+                  "type": "boolean"
+                },
+                "ocr_output": {
+                  "type": "string"
+                },
+                "receipt_detected": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "exif" : {
+              "properties" : {
+                "alt" : {
+                  "type" : "string"
+                },
+                "gps" : {
+                  "properties" : {
+                    "alt" : {
+                      "type" : "string"
+                    },
+                    "altref" : {
+                      "type" : "string"
+                    },
+                    "coord" : {
+                      "type" : "geo_point",
+                      "doc_values": true,
+                      "store": true
+                    },
+                    "latref" : {
+                      "type" : "string"
+                    },
+                    "lonref" : {
+                      "type" : "string"
+                    }
+                  }
+                }
+              }
+            },
+            "extension" : {
+              "type" : "string"
+            },
+            "filename" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "filesize" : {
+              "type" : "long"
+            },
+            "guid" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            }
+          }
+        },
+        "bccs" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "bccs_line" : {
+          "type" : "string"
+        },
+        "body" : {
+          "type" : "string",
+          "fields": {
+            "account_number" : {
+              "type" : "string",
+              "analyzer" : "account_number_analyzer",
+              "include_in_all": false
+            },
+            "trigram": {
+              "type": "string",
+              "analyzer": "trigram_analyzer",
+              "include_in_all": false
+            },
+            "trigram_d": {
+              "type": "string",
+              "analyzer": "trigram_d_analyzer",
+              "include_in_all": false
+            }
+          }
+        },
+        "body_lang" : {
+          "type" : "string"
+        },
+        "body_translated" : {
+          "type" : "string"
+        },
+        "body_as_html" : {
+          "type" : "boolean"
+        },
+        "case_id" : {
+          "type" : "string"
+        },
+        "categories" : {
+          "type" : "string"
+        },
+        "ccs" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "ccs_line" : {
+          "type" : "string"
+        },
+        "communities" : {
+          "properties" : {
+            "community" : {
+              "type" : "string",
+              "index" : "not_analyzed"
+            },
+            "community_id" : {
+              "type" : "long"
+            }
+          }
+        },
+        "communities_count" : {
+          "type" : "long"
+        },
+        "datetime" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "delivered_to" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "delivered_to_line" : {
+          "type" : "string"
+        },
+        "entities" : {
+          "properties" : {
+            "body_entities" : {
+              "properties" : {
+                "entity_all" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_full" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_location" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_misc" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_organization" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_person" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                }
+              }
+            },
+            "body_entities_translated" : {
+              "properties" : {
+                "entity_all" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_full" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_location" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_misc" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_organization" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                },
+                "entity_person" : {
+                  "type" : "string",
+                  "index" : "not_analyzed"
+                }
+              }
+            },
+            "original_lang" : {
+              "type" : "string"
+            }
+          }
+        },
+        "forensic-bcc" : {
+          "type" : "string"
+        },
+        "id" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "ingest_id" : {
+          "type" : "string"
+        },
+        "inreplyto" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "messageid" : {
+          "type" : "string"
+        },
+        "numbers": {
+          "properties": {
+            "offset_start": {
+              "type": "long"
+            },
+            "normalized": {
+              "type": "string"
+            },
+            "offset_end": {
+              "type": "long"
+            },
+            "excerpt": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          }
+        },
+        "original_artifact" : {
+          "properties" : {
+            "filename" : {
+              "type" : "string"
+            },
+            "type" : {
+              "type" : "string"
+            }
+          }
+        },
+        "originating_ips" : {
+          "type" : "string"
+        },
+        "originating_locations" : {
+          "properties" : {
+            "city" : {
+              "type" : "string"
+            },
+            "geo_coord" : {
+              "type" : "geo_point",
+              "doc_values": true,
+              "store": true
+            }
+          }
+        },
+        "phone_numbers" : {
+          "type" : "string",
+          "fields": {
+            "trigram": {
+              "type": "string",
+              "analyzer": "trigram_analyzer"
+            }
+          },
+          "copy_to": [
+            "trigram"
+          ]
+        },
+        "references" : {
+          "type" : "string"
+        },
+        "senders" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "senders_line" : {
+          "type" : "string"
+        },
+        "starred" : {
+          "type" : "boolean",
+          "null_value" : false
+        },
+        "subject" : {
+          "type" : "string"
+        },
+        "subject_size" : {
+          "type" : "long"
+        },
+        "subject_lang" : {
+          "type" : "string"
+        },
+        "subject_translated" : {
+          "type" : "string"
+        },
+        "topic_scores" : {
+          "properties" : {
+            "idx_0" : {
+              "type" : "double"
+            },
+            "idx_1" : {
+              "type" : "double"
+            },
+            "idx_2" : {
+              "type" : "double"
+            },
+            "idx_3" : {
+              "type" : "double"
+            },
+            "idx_4" : {
+              "type" : "double"
+            },
+            "idx_5" : {
+              "type" : "double"
+            },
+            "idx_6" : {
+              "type" : "double"
+            },
+            "idx_7" : {
+              "type" : "double"
+            },
+            "idx_8" : {
+              "type" : "double"
+            },
+            "idx_9" : {
+              "type" : "double"
+            }
+          }
+        },
+        "tos" : {
+          "type" : "string",
+          "index" : "not_analyzed",
+          "copy_to" : [ "addrs" ]
+        },
+        "tos_line" : {
+          "type" : "string"
+        },
+        "trigram" : {
+          "type": "string",
+          "analyzer" : "trigram_analyzer",
+          "include_in_all": false,
+          "term_vector" : "yes"
+        }
+      }
+    },
+    "attachments" : {
+      "properties" : {
+        "alt_ref_id" : {
+          "type" : "string"
+        },
+        "case_id" : {
+          "type" : "string"
+        },
+        "content" : {
+          "type" : "string"
+        },
+        "content_encrypted" : {
+          "type" : "boolean"
+        },
+        "content_extracted" : {
+          "type" : "boolean"
+        },
+        "content_hash" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "content_length" : {
+          "type" : "long"
+        },
+        "content_type" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "contents64" : {
+          "type" : "string",
+          "index" : "no"
+        },
+        "datetime" : {
+          "type" : "date",
+          "format" : "dateOptionalTime"
+        },
+        "image_analytics": {
+          "properties": {
+            "human_detected": {
+              "type": "boolean"
+            },
+            "ocr_output": {
+              "type": "string"
+            },
+            "receipt_detected": {
+              "type": "boolean"
+            }
+          }
+        },
+        "exif" : {
+          "properties" : {
+            "alt" : {
+              "type" : "string"
+            },
+            "gps" : {
+              "properties" : {
+                "alt" : {
+                  "type" : "string"
+                },
+                "altref" : {
+                  "type" : "string"
+                },
+                "coord" : {
+                  "type" : "geo_point",
+                  "doc_values": true,
+                  "store": true
+                },
+                "latref" : {
+                  "type" : "string"
+                },
+                "lonref" : {
+                  "type" : "string"
+                }
+              }
+            }
+          }
+        },
+        "extension" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "filename" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "guid" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "id" : {
+          "type" : "string",
+          "index" : "not_analyzed"
+        },
+        "ingest_id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "original_artifact" : {
+          "properties" : {
+            "filename" : {
+              "type" : "string"
+            },
+            "type" : {
+              "type" : "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "settings" : {
+    "index" : {
+      "mapping" : {
+        "allow_type_wrapper" : "true"
+      },
+      "number_of_shards" : "1",
+      "number_of_replicas" : "0",
+
+      "analysis" : {
+        "analyzer" : {
+          "account_number_analyzer" : {
+            "tokenizer": "account_number_tokenizer",
+            "filter":   [
+              "account_number_normalization_filter"
+            ]
+          },
+          "domain_analyzer" : {
+            "char_filter" : [ "domain_pattern" ],
+            "tokenizer" : "standard"
+          },
+          "trigram_analyzer": {
+            "type":      "custom",
+            "tokenizer": "standard",
+            "filter":   [
+              "lowercase",
+              "trigram_filter"
+            ]
+          },
+          "trigram_d_analyzer": {
+            "type": "custom",
+            "tokenizer": "trigram_d_tokenizer",
+            "filter": [
+              "lowercase"
+            ]
+          }
+        },
+        "char_filter" : {
+          "domain_pattern" : {
+            "type" : "pattern_replace",
+            "pattern" : ".*@",
+            "replacement" : ""
+          }
+        },
+        "filter": {
+          "trigram_filter": {
+            "type":     "ngram",
+            "min_gram": 3,
+            "max_gram": 3
+          },
+          "account_number_normalization_filter": {
+            "type" : "pattern_replace",
+            "pattern" : "[ -]",
+            "replacement" : ""
+          }
+        },
+        "tokenizer": {
+          "trigram_d_tokenizer": {
+            "type": "nGram",
+            "min_gram": 3,
+            "max_gram": 3,
+            "token_chars": [ "digit" ]
+          },
+          "account_number_tokenizer" : {
+            "type" : "pattern",
+            "pattern" : "([\\d]{4}[ -]?[\\d]{4}[ -]?[\\d]{4}[ -]?[\\d]{4})",
+            "group" : 0
+          }
+        }
+      }
+    }
+  }
+}
