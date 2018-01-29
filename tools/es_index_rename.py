@@ -1,12 +1,36 @@
 #!/usr/bin/env python3
 
+"""es_index_rename.py:  A script to rename Newman label ID's within Elasticsearch."""
+__author__      = "Robert Parkhurst"
+__version__     = "1.0.0"
+__email__       = "robert.parkhurst@keywcorp.com"
+__maintainer__  = "Robert Parkhurst"
+
+
 import optparse
 import sys
-import elasticsearch
-import requests
 import pprint
 
-version="0.0.1"
+
+try:
+    import requests
+except Exception as ex:
+    print("Error importing requests")
+    sys.exit(1)
+
+try:
+    import elasticsearch
+
+    es_version_tuple = elasticsearch.__version__
+    if(es_version_tuple[0] < 2 or es_version_tuple[0] > 2):
+        print("Error:  Elasticsearch pip module is not running a supported version!  Only 2.x is supported at this time")
+        print("Please run pip3 install -r ./requirements_es_index_rename.txt")
+        sys.exit(1)
+
+except Exception as ex:
+    print("Error:  Unable to import elasticsearch module.")
+    print("Please run pip3 install -r ./requirements_es_index_rename.txt")
+    sys.exit(1)
 
 
 
@@ -17,29 +41,29 @@ parser.add_option('--verbose',
                   default=False,
                   dest="verbose")
 
-parser.add_option('-v',
+parser.add_option('--version',
                   help="display version information",
                   action="store_true",
                   default=False,
                   dest="version")
 
 parser.add_option("--esCluster",
-                  help="Name of Elastic Search Cluster",
+                  help="Name of Elastic Search Cluster.  Defaults to `localhost` if not provided.",
                   dest="es_cluster",
                   default="localhost")
 
 parser.add_option("--ls",
-                  help="list indicies",
+                  help="list Elasticsearch indicies and the corresponding Newman Web UI labels (probably run this first)",
                   action="store_true",
                   dest="es_ls",
                   default=False)
 
 parser.add_option("--label",
-                  help="Change label of an index.  MUST BE USED with esCluster AND esIndex",
+                  help="Change label of an index.  MUST BE USED with esCluster AND esIndex.  Use quotes when providing a name.  Example:  --label \"New Newman Label\"",
                   dest="es_label")
 
 parser.add_option("--esIndex",
-                  help="ES Index to change Newman Label of",
+                  help="ES Index to change Newman Label of.  Must be used with --label.  Use --ls to get a list of newman indices and their corresponding web ui labels.",
                   dest="es_index")
 
 
@@ -61,6 +85,8 @@ def ls_indices():
         label = res['hits']['hits'][0]['_source']['label']
 
         print("\t" + idx + "\t=>\t" + label)
+
+
 def es_label_update(es_index, label_name):
     """
     Function to update an Elasticsearch label for newman.  This *ONLY* affects the newman web ui front end.
@@ -79,13 +105,32 @@ def es_label_update(es_index, label_name):
     except Exception as ex:
         print("Error:  Unable to update Elasticsearch index label.  Please verify that this ES index is a newman index.")
         print(ex)
+
+
 def print_version_info():
     """
     simple function to print version information.  This is a weak version output and as such it is not indicitive
     of all changes made/not made to this code, but should be seen as a general/rough idea.
     :return:
     """
-    print("version is:  " + version)
+    print("version is:  " + __version__)
+    print("Elasticsearch pip module version is:  " + get_es_module_version())
+
+
+
+def get_es_module_version():
+    """
+    Function to format the version information returned from the elasticsearch module into a string
+    :return:
+    """
+    es_version = ''
+    for i in elasticsearch.__version__:
+        es_version += str(i)
+        es_version += "."
+
+    es_version = es_version[:-1]
+
+    return es_version
 
 
 
