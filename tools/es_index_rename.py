@@ -24,12 +24,12 @@ try:
     es_version_tuple = elasticsearch.__version__
     if(es_version_tuple[0] < 2 or es_version_tuple[0] > 2):
         print("Error:  Elasticsearch pip module is not running a supported version!  Only 2.x is supported at this time")
-        print("Please run pip3 install -r ./requirements_es_index_rename.txt")
+        print("Please run pip3 install -r ./requirements/requirements_es_index_rename.txt")
         sys.exit(1)
 
 except Exception as ex:
     print("Error:  Unable to import elasticsearch module.")
-    print("Please run pip3 install -r ./requirements_es_index_rename.txt")
+    print("Please run pip3 install -r ./requirements/requirements_es_index_rename.txt")
     sys.exit(1)
 
 

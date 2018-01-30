@@ -1,14 +1,33 @@
-import argparse
-import base64
-import cStringIO
-import tarfile
-import time
-import json
-import csv
+#!/usr/bin/env python2.7
 
-import tangelo
-import cherrypy
-from elasticsearch import Elasticsearch
+
+"""
+Base modules we know will always be imported
+"""
+import sys
+
+
+"""
+Modules we aren't sure if we have the dependencies for.
+"""
+try:
+    import argparse
+    import base64
+    import cStringIO
+    import tarfile
+    import time
+    import json
+    import csv
+    import tangelo
+    import cherrypy
+    from elasticsearch import Elasticsearch
+except Exception as ex:
+    print "Error:  One or more python modules necessary for this script to run are not install.  Please install requirements for this script:"
+    print "pip install -r ./requirements/requirements_es_attachment_export.txt"
+    sys.exit(1)
+
+
+
 
 
 def attch_ext_query(extension):
