@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 
 """es_index_rename.py:  A script to rename Newman label ID's within Elasticsearch."""
 __author__      = "Robert Parkhurst"
@@ -24,12 +24,12 @@ try:
     es_version_tuple = elasticsearch.__version__
     if(es_version_tuple[0] < 2 or es_version_tuple[0] > 2):
         print("Error:  Elasticsearch pip module is not running a supported version!  Only 2.x is supported at this time")
-        print("Please run pip3 install -r ./requirements/requirements_es_index_rename.txt")
+        print("Please run pip2 install -r ./requirements/requirements_es_index_rename.txt")
         sys.exit(1)
 
 except Exception as ex:
     print("Error:  Unable to import elasticsearch module.")
-    print("Please run pip3 install -r ./requirements/requirements_es_index_rename.txt")
+    print("Please run pip2 install -r ./requirements/requirements_es_index_rename.txt")
     sys.exit(1)
 
 
@@ -81,9 +81,12 @@ def ls_indices():
     """
     print("Index => Newman Label Map:")
     for idx in es.indices.get('*'):
-        res = es.search(index=idx, body={"query":{"bool":{"must":[{"query_string":{"default_field":"_all","query":idx}}],"must_not":[],"should":[]}},"from":0,"size":1,"sort":[],"aggs":{}})
-        label = res['hits']['hits'][0]['_source']['label']
-
+        try:
+            res = es.search(index=idx, body={"query":{"bool":{"must":[{"query_string":{"default_field":"_all","query":idx}}],"must_not":[],"should":[]}},"from":0,"size":1,"sort":[],"aggs":{}})
+            label = res['hits']['hits'][0]['_source']['label']
+        except Exception as ex:
+            label = "nil"
+            continue
         print("\t" + idx + "\t=>\t" + label)
 
 

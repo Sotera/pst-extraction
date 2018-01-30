@@ -24,6 +24,9 @@ try:
 except Exception as ex:
     print "Error:  One or more python modules necessary for this script to run are not install.  Please install requirements for this script:"
     print "pip install -r ./requirements/requirements_es_attachment_export.txt"
+    print ""
+    print "Error follows"
+    print ex
     sys.exit(1)
 
 
@@ -291,16 +294,22 @@ if __name__ == "__main__":
     parser.add_argument("--file_type", help="type of file to export .e.g. jpg, xsl, default exports all types", default=None)
     parser.add_argument("--start_date", help="Start date to export from in yyyy-MM-dd format, e.g. 20001-10-23, default exports all")
     parser.add_argument("--end_date", help="End date to export from in yyyy-MM-dd format, e.g. 20001-10-23 default exports all")
-
+    parser.add_argument("--verbose", help="Enables verbosity, default is no", type=bool, default=False)
 
     args = parser.parse_args()
-    print args.es_host
-    print args.index
-    print args.email_addr
 
-    print args.file_type
-    print args.start_date
-    print args.end_date
+    if (args.verbose):
+        print "*******************************************************************************"
+        print "Values given:  "
+        print "Elastic search host:  " + str(args.es_host)
+        print "Elastic search Index:  " + str(args.index)
+        print "Email Address:  " + str(args.email_addr)
+
+        print "File type:  " + str(args.file_type)
+        print "Start Date:  " + str(args.start_date)
+        print "End Date:  " + str(args.end_date)
+        print "Verbosity:  " + str(args.verbose)
+        print"*******************************************************************************"
 
     date_bounds = None if not (args.start_date and args.end_date) else (args.start_date, args.end_date)
     export_attachments(args.es_host, args.index, args.outfile,  args.email_addr, args.file_type, date_bounds)
