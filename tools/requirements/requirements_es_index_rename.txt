@@ -1,0 +1,6 @@
+
+# Elasticsearch 2.x
+elasticsearch>=2.0.0,<3.0.0
+
+# Requests
+requests==2.18.4

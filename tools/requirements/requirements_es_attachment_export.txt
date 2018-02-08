@@ -1,0 +1,15 @@
+bitstring==3.1.5
+certifi==2017.4.17
+chardet==3.0.4
+CherryPy==3.8.2
+dropbox==8.0.0
+elasticsearch==2.4.1
+idna==2.5
+lifxlan==0.4.0
+mercurial==4.3.1
+PyYAML==3.11
+requests==2.18.4
+six==1.10.0
+tangelo==0.10.0
+urllib3==1.21.1
+ws4py==0.3.2
