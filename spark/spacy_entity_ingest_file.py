@@ -19,8 +19,6 @@ def extract_entities(doc_iter, extract_field='body', extracted_lang_field='body_
         blacklist = ['subject']
         nlp = spacy.load(lang)
         extracted_text = re.sub(r'[^\x00-\x7F]', ' ', extracted_text)
-        extracted_text = extracted_text.replace("[:newline:]", "           ")
-        #extracted_text = extracted_text.encode("ascii")
         document = nlp(extracted_text)
         print 'ENTITIES ====================================='
         print document.ents
