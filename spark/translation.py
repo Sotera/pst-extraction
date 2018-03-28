@@ -78,7 +78,10 @@ def translate_joshua(text, joshua_server, from_lang, to_lang='en'):
     data = json.dumps(data)
 
     url = 'http://' + joshua_server + JOSHUA_ENDPOINT + LANGUAGE_ALIASES[to_lang]
+    print url
+    print data
     req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
+
     f = urllib2.urlopen(req)
     translation = json.load(f)['outputText']
     f.close()
