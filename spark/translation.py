@@ -44,7 +44,7 @@ def dump(x):
     return json.dumps(x)
 
 def language(text, override_language=None):
-    if override_language and override_language != 'Auto':
+    if override_language and override_language != 'auto':
         return override_language
 
     try:
@@ -138,7 +138,7 @@ def process_partition(emails, force_language, translation_mode, moses_server, jo
 
 
 def test():
-    print process_email({'body':u'La oración a modo de ejemplo debe ayudar al usuario a entender no solamente el significado de la palabra, sino también el contexto en el que se utiliza.'}, 'Auto', 'joshua', 'localhost:8080', '10.1.70.200:8001')
+    print process_email({'body':u'La oración a modo de ejemplo debe ayudar al usuario a entender no solamente el significado de la palabra, sino también el contexto en el que se utiliza.'}, 'auto', 'joshua', 'localhost:8080', '10.1.70.200:8001')
     return
 
 if __name__ == '__main__':
