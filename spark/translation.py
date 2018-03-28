@@ -43,7 +43,7 @@ def dump(x):
     return json.dumps(x)
 
 def language(text, override_language=None):
-    if override_language:
+    if override_language and override_language != 'Auto':
         return override_language
 
     try:
