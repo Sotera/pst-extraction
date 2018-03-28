@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
+echo "===========================================$0"
 
 RUN_FLAGS=$@
 echo "mode=$RUN_FLAGS"
 
 set +x
 set -e
-echo "===========================================$0"
+
 
 if [[ -d "pst-extract/spark-lda-input" ]]; then
     rm -rf "pst-extract/spark-lda-input"
@@ -30,7 +31,7 @@ if [[ -d "pst-extract/$OUTPUT_DIR" ]]; then
 fi
 
 
-SPARK_CONF="--master local[*] --driver-memory 8g --executor-memory 4g"
+SPARK_CONF="--master local[*] --driver-memory 32g --executor-memory 4g"
 echo "Spark configuration: $SPARK_CONF"
 
 echo ===== running topic clustering

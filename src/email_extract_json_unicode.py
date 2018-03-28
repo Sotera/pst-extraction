@@ -95,14 +95,14 @@ def clean_string(sz, expr_list):
     return reduce(lambda x,r: re.sub(nth(r,0),nth(r,1,' '), x), expr_list, sz)
 
 
-def dateToUTCstr(str_date):
+def dateToUTCstr(str_date_in):
     # this fails to parse timezones out of formats like
     # Tue, 17 Jun 2010 08:33:51 EDT
     # so it will assume the local timezone for those cases
 
     # add leading zero(s) to single digit time part when time is malformed
     str_date = str_date_in.replace(": ", ":0").replace(":0 ", ":00 ")
-    
+
     try:
         dt = dateutil.parser.parse(str_date)
     except (TypeError, ValueError) as e:

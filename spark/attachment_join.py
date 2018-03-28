@@ -50,8 +50,9 @@ def loadJson(s):
         data = json.loads(s)
     except:
         print "ERROR converting JSON-encoded string to a Python data structure: " + s[:100]
-        data = {}
+        data = {'id':'NULL'}
     return data
+
 
 if __name__ == "__main__":
 
@@ -78,7 +79,8 @@ if __name__ == "__main__":
     conf = SparkConf().setAppName("Newman join attachments content")
     sc = SparkContext(conf=conf)
 
-    rdd_emails = sc.textFile(args.input_emails_path).filter(filter_fn).map(loadJson).keyBy(lambda x: x['id'])
+    rdd_emails = sc.textFile(args.input_emails_path).filter(filter_fn).map(loadJson).filter(
+        lambda x: x['id'] != 'NULL').keyBy(lambda x: x['id'])
 
     # Join each of the content rdds to the email rdd
     # TODO fix this iteration - maybe key field is not correct once it joins?
