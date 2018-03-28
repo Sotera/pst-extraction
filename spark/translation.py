@@ -3,6 +3,7 @@ import sys
 import os
 import argparse
 import json
+import urllib2
 import subprocess
 
 from langdetect import detect
@@ -14,7 +15,29 @@ from filters import valid_json_filter
 # 3rd-party modules
 from pyspark import SparkContext, SparkConf
 
-SUPPORTED_LANGS = ['es','en']
+SUPPORTED_LANGS = ['es','en','fa','ar']
+JOSHUA_ENDPOINT = '/joshua/translate/'
+LANGUAGE_ALIASES = [
+    (u'ar', u'arabic'),
+    (u'cz', u'czech'),
+    (u'da', u'danish'),
+    (u'nl', u'dutch'),
+    (u'en', u'english'),
+    (u'et', u'estonian'),
+    (u'fa', u'persian'),
+    (u'fi', u'finnish'),
+    (u'fr', u'french'),
+    (u'de', u'german'),
+    (u'el', u'greek'),
+    (u'it', u'italian'),
+    (u'no', u'norwegian'),
+    (u'pl', u'polish'),
+    (u'pt', u'portuguese'),
+    (u'sl', u'slovene'),
+    (u'es', u'spanish'),
+    (u'sv', u'swedish'),
+    (u'tr', u'turkish'),
+]
 
 def dump(x):
     return json.dumps(x)
@@ -48,13 +71,25 @@ def translate_moses(text, moses, from_lang, to_lang='en'):
     es_query=u' '.join(moses.tokenize_en(text)).encode("utf-8")
     return moses.translate(es_query)
 
-def translate(text, moses, from_lang, to_lang='en'):
+def translate_joshua(text, joshua_server, from_lang, to_lang='en'):
+    data = {'inputLanguage': LANGUAGE_ALIASES[from_lang], 'inputText': text}
+    data = json.dumps(data)
+
+    req = urllib2.Request(joshua_server + JOSHUA_ENDPOINT + LANGUAGE_ALIASES[to_lang], data, {'Content-Type': 'application/json'})
+    f = urllib2.urlopen(req)
+    translation = json.load(f.read())['outputText']
+    f.close()
+    return translation
+
+def translate(text, translation_mode, moses, joshua_server, from_lang, to_lang='en'):
     if moses:
         return translate_moses(text, moses, from_lang, to_lang='en')
+    elif translation_mode == 'joshua':
+        return translate_joshua(text, joshua_server, from_lang, to_lang='en')
 
     return translate_apertium(text, from_lang, to_lang='en')
 
-def process_email(email, force_language, translation_mode, moses):
+def process_email(email, force_language, translation_mode, moses, joshua_server):
     # default to en
 
     lang = 'en'
@@ -62,7 +97,7 @@ def process_email(email, force_language, translation_mode, moses):
     if "body" in email:
         lang = language(email["body"], force_language)
         if not lang == 'en':
-            translated = translate(email["body"], moses, lang, 'en')
+            translated = translate(email["body"], translation_mode, moses, joshua_server, lang, 'en')
             email["body_lang"]= lang
             email["body_translated"] = translated
 
@@ -85,7 +120,7 @@ def process_email(email, force_language, translation_mode, moses):
     return email
 
 
-def process_patition(emails, force_language, translation_mode, moses_server):
+def process_partition(emails, force_language, translation_mode, moses_server, joshua_server):
     moses = None
     if translation_mode == 'moses' and moses_server:
         sys.path.append(".")
@@ -94,7 +129,7 @@ def process_patition(emails, force_language, translation_mode, moses_server):
         moses.connect(moses_server)
 
     for email in emails:
-        yield process_email(email, force_language, translation_mode, moses)
+        yield process_email(email, force_language, translation_mode, moses, joshua_server)
 
 
 def test():
@@ -118,13 +153,14 @@ if __name__ == '__main__':
     parser.add_argument("input_content_path", help="input email or attachment content path")
     parser.add_argument("output_content_translated", help="output all text enriched with translation and language")
     parser.add_argument("--force_language", default='en', help="Force the code to assume translation from a specific language to english.  If this is set to 'en' no translation will occur.")
-    parser.add_argument("--translation_mode", help="Can be set to 'moses'|'apertium', moses requires a moses_server property set.")
+    parser.add_argument("--translation_mode", help="Can be set to 'moses'|'apertium'|'joshua', moses/joshua requires a moses_server/joshua_server property set.")
     parser.add_argument("--moses_server", default="localhost:8080", help="Moses server to connect to for translation.")
+    parser.add_argument("--joshua_server", default="localhost:8001", help="Joshua server to connect to for translation.")
     parser.add_argument("-v", "--validate_json", action="store_true", help="Filter broken json.  Test each json object and output broken objects to tmp/failed.")
 
     args = parser.parse_args()
 
-    print "Translation params:  --force_language %s --translation_mode %s --moses_server %s"%( args.force_language, args.translation_mode, args.moses_server)
+    print "Translation params:  --force_language %s --translation_mode %s --moses_server %s --joshua_server %s"%( args.force_language, args.translation_mode, args.moses_server, args.joshua_server)
 
     conf = SparkConf().setAppName("Newman translate")
     sc = SparkContext(conf=conf)
@@ -134,4 +170,4 @@ if __name__ == '__main__':
     filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
 
     rdd_emails = sc.textFile(args.input_content_path).filter(filter_fn).coalesce(50).map(lambda x: json.loads(x))
-    rdd_emails.mapPartitions(lambda docs: process_patition(docs, args.force_language, args.translation_mode, args.moses_server)).map(dump).saveAsTextFile(args.output_content_translated)
+    rdd_emails.mapPartitions(lambda docs: process_partition(docs, args.force_language, args.translation_mode, args.moses_server, args.joshua_server)).map(dump).saveAsTextFile(args.output_content_translated)
