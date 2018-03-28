@@ -1,4 +1,5 @@
 # Standard lib
+# -*- coding: utf-8 -*-
 import sys
 import os
 import argparse
@@ -17,27 +18,27 @@ from pyspark import SparkContext, SparkConf
 
 SUPPORTED_LANGS = ['es','en','fa','ar']
 JOSHUA_ENDPOINT = '/joshua/translate/'
-LANGUAGE_ALIASES = [
-    (u'ar', u'arabic'),
-    (u'cz', u'czech'),
-    (u'da', u'danish'),
-    (u'nl', u'dutch'),
-    (u'en', u'english'),
-    (u'et', u'estonian'),
-    (u'fa', u'persian'),
-    (u'fi', u'finnish'),
-    (u'fr', u'french'),
-    (u'de', u'german'),
-    (u'el', u'greek'),
-    (u'it', u'italian'),
-    (u'no', u'norwegian'),
-    (u'pl', u'polish'),
-    (u'pt', u'portuguese'),
-    (u'sl', u'slovene'),
-    (u'es', u'spanish'),
-    (u'sv', u'swedish'),
-    (u'tr', u'turkish'),
-]
+LANGUAGE_ALIASES = {
+    'ar':'arabic',
+    'cz': 'czech',
+    'da': 'danish',
+    'nl': 'dutch',
+    'en': 'english',
+    'et': 'estonian',
+    'fa': 'persian',
+    'fi': 'finnish',
+    'fr': 'french',
+    'de': 'german',
+    'el': 'greek',
+    'it': 'italian',
+    'no': 'norwegian',
+    'pl': 'polish',
+    'pt': 'portuguese',
+    'sl': 'slovene',
+    'es': 'spanish',
+    'sv': 'swedish',
+    'tr': 'turkish'
+}
 
 def dump(x):
     return json.dumps(x)
@@ -76,17 +77,18 @@ def translate_joshua(text, joshua_server, from_lang, to_lang='en'):
     data = {'inputLanguage': LANGUAGE_ALIASES[from_lang], 'inputText': text}
     data = json.dumps(data)
 
-    req = urllib2.Request(joshua_server + JOSHUA_ENDPOINT + LANGUAGE_ALIASES[to_lang], data, {'Content-Type': 'application/json'})
+    url = 'http://' + joshua_server + JOSHUA_ENDPOINT + LANGUAGE_ALIASES[to_lang]
+    req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
     f = urllib2.urlopen(req)
-    translation = json.load(f.read())['outputText']
+    translation = json.load(f)['outputText']
     f.close()
     print 'text translated ' + translation
     return translation
 
 def translate(text, translation_mode, moses, joshua_server, from_lang, to_lang='en'):
-    if moses:
+    if translation_mode == 'moses' and moses:
         return translate_moses(text, moses, from_lang, to_lang='en')
-    elif translation_mode == 'joshua':
+    elif translation_mode == 'joshua' and joshua_server:
         print 'Translating text with joshua'
         return translate_joshua(text, joshua_server, from_lang, to_lang='en')
 
@@ -136,7 +138,7 @@ def process_partition(emails, force_language, translation_mode, moses_server, jo
 
 
 def test():
-    print process_email({'body':"hello world"})
+    print process_email({'body':u'La oración a modo de ejemplo debe ayudar al usuario a entender no solamente el significado de la palabra, sino también el contexto en el que se utiliza.'}, 'Auto', 'joshua', 'localhost:8080', '10.1.70.200:8001')
     return
 
 if __name__ == '__main__':
@@ -148,8 +150,10 @@ if __name__ == '__main__':
 
 
     # TEST
-    # test()
-    # print "done"
+    #test()
+    #print "done"
+    #sys.exit()
+
 
     # SPARK
 
