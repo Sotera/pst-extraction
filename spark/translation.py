@@ -16,10 +16,10 @@ from filters import valid_json_filter
 # 3rd-party modules
 from pyspark import SparkContext, SparkConf
 
-SUPPORTED_LANGS = ['es','en','fa','ar']
+SUPPORTED_LANGS = ['es','en','fa','ar','spanish','persian','arabic']
 JOSHUA_ENDPOINT = '/joshua/translate/'
 LANGUAGE_ALIASES = {
-    'ar':'arabic',
+    'ar': 'arabic',
     'cz': 'czech',
     'da': 'danish',
     'nl': 'dutch',
@@ -104,7 +104,7 @@ def process_email(email, force_language, translation_mode, moses, joshua_server)
 
     if "body" in email:
         lang = language(email["body"], force_language)
-        if not lang == 'en':
+        if not lang == 'en' and lang in SUPPORTED_LANGS:
             translated = translate(email["body"], translation_mode, moses, joshua_server, lang, 'en')
             email["body_lang"]= lang
             email["body_translated"] = translated
@@ -112,18 +112,19 @@ def process_email(email, force_language, translation_mode, moses, joshua_server)
     if "subject" in email:
         # TODO  -- fix this for now use body lang for subject because library seems to miscalculate it because of RE: FW: characters etc
         # lang = language(email["subject"], force_language)
-        if not lang == 'en':
+        if not lang == 'en' and lang in SUPPORTED_LANGS:
             translated = translate(email["subject"], translation_mode, moses, joshua_server, lang, 'en')
             email["subject_lang"] = lang
             email["subject_translated"] = translated
 
-    for attachment in email["attachments"]:
-        if "content" in attachment:
-            lang = language(attachment["content"], force_language)
-            if not lang == 'en':
-                translated = translate(attachment["content"], translation_mode, moses, joshua_server, lang, 'en')
-                attachment["content_lang"] = lang
-                attachment["content_translated"] = translated
+    if "attachments" in email:
+        for attachment in email["attachments"]:
+            if "content" in attachment:
+                lang = language(attachment["content"], force_language)
+                if not lang == 'en' and lang in SUPPORTED_LANGS:
+                    translated = translate(attachment["content"], translation_mode, moses, joshua_server, lang, 'en')
+                    attachment["content_lang"] = lang
+                    attachment["content_translated"] = translated
 
     return email
 
@@ -141,7 +142,7 @@ def process_partition(emails, force_language, translation_mode, moses_server, jo
 
 
 def test():
-    print process_email({'body':u'La oración a modo de ejemplo debe ayudar al usuario a entender no solamente el significado de la palabra, sino también el contexto en el que se utiliza.'}, 'auto', 'joshua', 'localhost:8080', '10.1.70.200:8001')
+    print process_email({'body':u'Haben Sie etwas Billigeres?'}, 'auto', 'joshua', 'localhost:8080', '10.1.70.200:8001')
     return
 
 if __name__ == '__main__':
