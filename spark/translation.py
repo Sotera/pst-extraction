@@ -72,6 +72,7 @@ def translate_moses(text, moses, from_lang, to_lang='en'):
     return moses.translate(es_query)
 
 def translate_joshua(text, joshua_server, from_lang, to_lang='en'):
+    print 'translating text'
     data = {'inputLanguage': LANGUAGE_ALIASES[from_lang], 'inputText': text}
     data = json.dumps(data)
 
@@ -79,12 +80,14 @@ def translate_joshua(text, joshua_server, from_lang, to_lang='en'):
     f = urllib2.urlopen(req)
     translation = json.load(f.read())['outputText']
     f.close()
+    print 'text translated ' + translation
     return translation
 
 def translate(text, translation_mode, moses, joshua_server, from_lang, to_lang='en'):
     if moses:
         return translate_moses(text, moses, from_lang, to_lang='en')
     elif translation_mode == 'joshua':
+        print 'Translating text with joshua'
         return translate_joshua(text, joshua_server, from_lang, to_lang='en')
 
     return translate_apertium(text, from_lang, to_lang='en')
@@ -105,7 +108,7 @@ def process_email(email, force_language, translation_mode, moses, joshua_server)
         # TODO  -- fix this for now use body lang for subject because library seems to miscalculate it because of RE: FW: characters etc
         # lang = language(email["subject"], force_language)
         if not lang == 'en':
-            translated = translate(email["subject"], moses, lang, 'en')
+            translated = translate(email["subject"], translation_mode, moses, joshua_server, lang, 'en')
             email["subject_lang"] = lang
             email["subject_translated"] = translated
 
@@ -113,7 +116,7 @@ def process_email(email, force_language, translation_mode, moses, joshua_server)
         if "content" in attachment:
             lang = language(attachment["content"], force_language)
             if not lang == 'en':
-                translated = translate(attachment["content"], moses, lang, 'en')
+                translated = translate(attachment["content"], translation_mode, moses, joshua_server, lang, 'en')
                 attachment["content_lang"] = lang
                 attachment["content_translated"] = translated
 
