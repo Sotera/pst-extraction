@@ -6,6 +6,7 @@ import argparse
 import json
 import urllib2
 import subprocess
+import uuid
 
 from langdetect import detect
 from langdetect.lang_detect_exception import LangDetectException
@@ -39,6 +40,15 @@ LANGUAGE_ALIASES = {
     'tr': 'turkish'
 }
 
+import logging
+logger = logging.getLogger('translation')
+
+hdlr = logging.FileHandler('/tmp/%s.log' % str(uuid.uuid4()))
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+hdlr.setFormatter(formatter)
+logger.addHandler(hdlr)
+logger.setLevel(logging.INFO)
+
 def dump(x):
     return json.dumps(x)
 
@@ -64,7 +74,7 @@ def language(text, override_language=None):
         return override_language
     try:
         lang = get_lang(text)
-        print "Detected :" + lang
+        logger.info( "Detected :" + lang)
         return lang
         #return detect(text)
     except LangDetectException:
@@ -91,19 +101,19 @@ def translate_moses(text, moses, from_lang, to_lang='en'):
     return moses.translate(es_query)
 
 def translate_joshua(text, joshua_server, from_lang, to_lang='en'):
-    print 'translating text'
+    logger.info( 'translating text')
     data = {'inputLanguage': LANGUAGE_ALIASES[from_lang], 'inputText': text}
     data = json.dumps(data)
 
     url = 'http://' + joshua_server + JOSHUA_ENDPOINT + LANGUAGE_ALIASES[to_lang]
-    print url
-    print data
+    logger.info( url)
+    logger.info( data)
     req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
 
     f = urllib2.urlopen(req)
     translation = json.load(f)['outputText']
     f.close()
-    print 'text translated ' + translation
+    logger.info( 'text translated ' + translation)
     return translation
 
 def translate(text, translation_mode, moses, joshua_server, from_lang, to_lang='en'):
@@ -172,9 +182,9 @@ if __name__ == '__main__':
 
 
     # TEST
-    #test()
+    test()
     #print "done"
-    #sys.exit()
+    sys.exit()
 
 
     # SPARK
