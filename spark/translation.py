@@ -172,9 +172,9 @@ if __name__ == '__main__':
 
 
     # TEST
-    #test()
+    test()
     #print "done"
-    #sys.exit()
+    sys.exit()
 
 
     # SPARK
