@@ -15,7 +15,6 @@ from filters import valid_json_filter
 
 # 3rd-party modules
 from pyspark import SparkContext, SparkConf
-
 SUPPORTED_LANGS = ['es','en','fa','ar','spanish','persian','arabic']
 JOSHUA_ENDPOINT = '/joshua/translate/'
 LANGUAGE_ALIASES = {
@@ -43,12 +42,31 @@ LANGUAGE_ALIASES = {
 def dump(x):
     return json.dumps(x)
 
+
+def get_lang(string):
+    parts = string.split('\n')
+    langs = {}
+    for part in parts:
+        lang = detect(part)
+        if lang == 'en':
+            continue
+        langs[lang] = langs.get(lang, 0) + 1
+    lang = 'en'
+    count = 0
+    for k,v in langs.iteritems():
+        if v > count:
+            lang = k
+            count = v
+    return lang
+
 def language(text, override_language=None):
     if override_language and override_language != 'auto':
         return override_language
-
     try:
-        return detect(text)
+        lang = get_lang(text)
+        print "Detected :" + lang
+        return lang
+        #return detect(text)
     except LangDetectException:
         return 'en'
 
@@ -142,7 +160,7 @@ def process_partition(emails, force_language, translation_mode, moses_server, jo
 
 
 def test():
-    print process_email({'body':u'Haben Sie etwas Billigeres?'}, 'auto', 'joshua', 'localhost:8080', '10.1.70.200:8001')
+    print process_email({'body':u'Hello bob, I really want to go to the beach this weekend. \n How about you and I make a trip out of it, we can stay near the beach in a hotel if you like. \n La oración a modo de ejemplo debe ayudar al usuario a entender no solamente el significado de la palabra.'}, 'auto', 'joshua', 'localhost:8080', '10.1.70.200:8001')
     return
 
 if __name__ == '__main__':
@@ -154,9 +172,9 @@ if __name__ == '__main__':
 
 
     # TEST
-    #test()
+    test()
     #print "done"
-    #sys.exit()
+    sys.exit()
 
 
     # SPARK
