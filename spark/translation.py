@@ -44,31 +44,42 @@ def dump(x):
 
 
 def get_lang(string):
+    print 'get lang 1'
     parts = string.split('\n')
     langs = {}
     for part in parts:
-        lang = detect(part)
+        if len(part) == 0:
+            continue
+        try:
+            print 'detecting: ' + part.encode('utf-8')
+            lang = detect(part)
+        except LangDetectException as e:
+            print e
+            continue
+        print 'detected: ' + lang
         if lang == 'en':
             continue
         langs[lang] = langs.get(lang, 0) + 1
     lang = 'en'
     count = 0
     for k,v in langs.iteritems():
-        if v > count:
+        if v > count and k in SUPPORTED_LANGS:
             lang = k
             count = v
+    print 'RETURNING : ' + lang
     return lang
 
+
 def language(text, override_language=None):
+
     if override_language and override_language != 'auto':
         return override_language
-    try:
-        lang = get_lang(text)
-        print "Detected :" + lang
-        return lang
-        #return detect(text)
-    except LangDetectException:
-        return 'en'
+
+    print 'detecting language'
+    lang = get_lang(text)
+    print "Detected :" + lang
+    return lang
+
 
 def translate_apertium_pipe(text, from_lang, to_lang='en'):
     return text
@@ -117,14 +128,13 @@ def translate(text, translation_mode, moses, joshua_server, from_lang, to_lang='
 
 def process_email(email, force_language, translation_mode, moses, joshua_server):
     # default to en
-
     lang = 'en'
 
     if "body" in email:
         lang = language(email["body"], force_language)
         if not lang == 'en' and lang in SUPPORTED_LANGS:
             translated = translate(email["body"], translation_mode, moses, joshua_server, lang, 'en')
-            email["body_lang"]= lang
+            email["body_lang"] = lang
             email["body_translated"] = translated
 
     if "subject" in email:
@@ -135,14 +145,14 @@ def process_email(email, force_language, translation_mode, moses, joshua_server)
             email["subject_lang"] = lang
             email["subject_translated"] = translated
 
-    if "attachments" in email:
-        for attachment in email["attachments"]:
-            if "content" in attachment:
-                lang = language(attachment["content"], force_language)
-                if not lang == 'en' and lang in SUPPORTED_LANGS:
-                    translated = translate(attachment["content"], translation_mode, moses, joshua_server, lang, 'en')
-                    attachment["content_lang"] = lang
-                    attachment["content_translated"] = translated
+    #if "attachments" in email:
+    #    for attachment in email["attachments"]:
+    #        if "content" in attachment:
+    #            lang = language(attachment["content"], force_language)
+    #            if not lang == 'en' and lang in SUPPORTED_LANGS:
+    #                translated = translate(attachment["content"], translation_mode, moses, joshua_server, lang, 'en')
+    #                attachment["content_lang"] = lang
+    #                attachment["content_translated"] = translated
 
     return email
 
@@ -175,8 +185,6 @@ if __name__ == '__main__':
     #test()
     #print "done"
     #sys.exit()
-
-
     # SPARK
 
     parser.add_argument("input_content_path", help="input email or attachment content path")
@@ -189,7 +197,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    print "Translation params:  --force_language %s --translation_mode %s --moses_server %s --joshua_server %s"%( args.force_language, args.translation_mode, args.moses_server, args.joshua_server)
+    print "Translation params:  --force_language %s --translation_mode %s --moses_server %s --joshua_server %s"%( 'auto', args.translation_mode, args.moses_server, args.joshua_server)
 
     conf = SparkConf().setAppName("Newman translate")
     sc = SparkContext(conf=conf)
@@ -199,4 +207,4 @@ if __name__ == '__main__':
     filter_fn = partial(valid_json_filter, os.path.basename(__file__), lex_date, not args.validate_json)
 
     rdd_emails = sc.textFile(args.input_content_path).filter(filter_fn).coalesce(50).map(lambda x: json.loads(x))
-    rdd_emails.mapPartitions(lambda docs: process_partition(docs, args.force_language, args.translation_mode, args.moses_server, args.joshua_server)).map(dump).saveAsTextFile(args.output_content_translated)
+    rdd_emails.mapPartitions(lambda docs: process_partition(docs, 'auto', args.translation_mode, args.moses_server, args.joshua_server)).map(dump).saveAsTextFile(args.output_content_translated)
