@@ -120,9 +120,13 @@ if __name__ == "__main__":
     nodes_idx = map(lambda x: {'addr' : x, 'idx': node_map[x], 'community': 'n/a'}, nodes)
     edges = rdd_edges.map(lambda x: (broadcast_node_map.value[x[0]], broadcast_node_map.value[x[1]])).collect()
 
-    g = igraph.Graph(len(nodes)+1)
-    g.add_edges(edges)
-    g.vs['node'] = nodes_idx
+    try:
+        g = igraph.Graph(len(nodes) + 1)
+        g.add_edges(edges)
+        g.vs['node'] = nodes_idx
+    except:
+        print "ERROR creating community clustering graph (in emailaddr_agg.py).  No nodes and/or edges.  Exiting."
+        exit(0)
 
     g = g.as_undirected(mode='collapse')
     clustering = g.community_multilevel()
