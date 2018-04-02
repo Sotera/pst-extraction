@@ -95,10 +95,13 @@ def clean_string(sz, expr_list):
     return reduce(lambda x,r: re.sub(nth(r,0),nth(r,1,' '), x), expr_list, sz)
 
 
-def dateToUTCstr(str_date):
+def dateToUTCstr(str_date_in):
     # this fails to parse timezones out of formats like
     # Tue, 17 Jun 2010 08:33:51 EDT
     # so it will assume the local timezone for those cases
+
+    # add leading zero(s) to single digit time part when time is malformed
+    str_date = str_date_in.replace(": ", ":0").replace(":0 ", ":00 ")
 
     try:
         dt = dateutil.parser.parse(str_date)
@@ -110,13 +113,13 @@ def dateToUTCstr(str_date):
             nstz_info = dateutil.tz.tzoffset("NSTZ",parsed_dt[9])
             dt = datetime.datetime(*parsed_dt[:6], tzinfo=nstz_info)
         except:
+            print "ERROR Failed to convert date: {}  Date parsed: {}".format(str_date, str_date_in)
             dt = datetime.datetime(*parsedate_tz(str_date)[:6])
-            # print "ERROR Failed to convert Date: {} from {}".format(str_date, parsed_dt)
             # raise
 
 
     if not dt.tzinfo:
-        print "WARNING:  Failed to parse timezone defaulting to UTC for Date: {}".format(str_date)
+        print "WARNING:  Failed to parse timezone; defaulting to UTC for date: {}  Date parsed: {}".format(str_date, str_date_in)
         dt = dt.replace(tzinfo=dateutil.tz.tzutc())
 
     dt_tz = dt.astimezone(dateutil.tz.tzutc())
@@ -124,6 +127,7 @@ def dateToUTCstr(str_date):
     # print u"Parsed date={} ====> {}".format(str_date, time_str)
 
     return time_str
+
 
 
 
