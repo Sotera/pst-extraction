@@ -56,7 +56,10 @@ def write_csv(out_file, json_file):
 
         for line in json_data:
             edge = json.loads(line)
-            csv_file.writerow( edge.values() )
+            values = edge.values()
+            values = [s.encode('utf-8') for s in values]
+            csv_file.writerow(values)
+
 
 if __name__ == "__main__":
     desc='Export edges.'
